@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   USART                                                             09/18/2018 16:38:22 PAGE 1   
+C51 COMPILER V9.59.0.0   USART                                                             09/19/2018 09:25:30 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE USART
@@ -62,7 +62,7 @@ line level    source
   51   1          char xdata Num = 0;
   52   1          int xdata Count = 0;
   53   1      Loop:
-C51 COMPILER V9.59.0.0   USART                                                             09/18/2018 16:38:22 PAGE 2   
+C51 COMPILER V9.59.0.0   USART                                                             09/19/2018 09:25:30 PAGE 2   
 
   54   1          *RecStr = SBUF;
   55   1          Count = 0;
@@ -126,7 +126,7 @@ line level    source
  111   1          int xdata HCheck;
  112   1          int xdata LCheck;
  113   1          //提取数据包中的数据，并存储到本地变量中
-C51 COMPILER V9.59.0.0   USART                                                             09/18/2018 16:38:22 PAGE 3   
+C51 COMPILER V9.59.0.0   USART                                                             09/19/2018 09:25:30 PAGE 3   
 
  114   1          DeviceID_01 = Rx_Buffer[0];
  115   1          DeviceID_02 = Rx_Buffer[1];
@@ -173,44 +173,45 @@ line level    source
              -ID5_01 + ICCID5_02;
  153   1          HCheck = (short)(Check >> 8);   //提取校验位高八位
  154   1          LCheck = (short)(Check & 0xff); //提取校验位低八位
- 155   1      
- 156   1          if ((Check_01 != HCheck) && (Check_02 != LCheck)) //比较计算的校验位是否与数据包中校�
-             -�位相等
- 157   1          {
- 158   2              Order = COMMAND_ERRORUPLOAD;
- 159   2          }
- 160   1      }
- 161          
- 162          void Clear_Buf(char *Rx_Buf)
- 163          {
- 164   1          memset(Rx_Buf, 0x00, MAX_SIZE);
- 165   1      }
- 166          
- 167          void Uart1_Isr(void) interrupt 4 using 1
- 168          {
- 169   1          //ES = 0;
- 170   1          if (Send_OK_Flag == True)
-C51 COMPILER V9.59.0.0   USART                                                             09/18/2018 16:38:22 PAGE 4   
+ 155   1          if(Check_02 != LCheck)
+ 156   1              Order = COMMAND_ERRORUPLOAD; 
+ 157   1          // if ((Check_01 != HCheck) && (Check_02 != LCheck)) //比较计算的校验位是否与数据包中�
+             -�验位相等
+ 158   1          // {
+ 159   1          //     Order = COMMAND_ERRORUPLOAD;
+ 160   1          // }
+ 161   1      }
+ 162          
+ 163          void Clear_Buf(char *Rx_Buf)
+ 164          {
+ 165   1          memset(Rx_Buf, 0x00, MAX_SIZE);
+ 166   1      }
+ 167          
+ 168          void Uart1_Isr(void) interrupt 4 using 1
+ 169          {
+ 170   1          //ES = 0;
+C51 COMPILER V9.59.0.0   USART                                                             09/19/2018 09:25:30 PAGE 4   
 
- 171   1          {
- 172   2              if (Uart1_Recv_NUM_Packet())
- 173   2              {
- 174   3                  //数据包长度正确则执行以下代码
- 175   3                  Uart1_Recv_Deal();
- 176   3              }
- 177   2          }
- 178   1          else
- 179   1          {
- 180   2              Uart1_Recv_NUM_AT();
- 181   2          }
- 182   1          //RI = 0; //接收并处理一次数据后把接收中断标志清除一下，拒绝响应在中断接
+ 171   1          if (Send_OK_Flag == True)
+ 172   1          {
+ 173   2              if (Uart1_Recv_NUM_Packet())
+ 174   2              {
+ 175   3                  //数据包长度正确则执行以下代码
+ 176   3                  Uart1_Recv_Deal();
+ 177   3              }
+ 178   2          }
+ 179   1          else
+ 180   1          {
+ 181   2              Uart1_Recv_NUM_AT();
+ 182   2          }
+ 183   1          //RI = 0; //接收并处理一次数据后把接收中断标志清除一下，拒绝响应在中断接
              -收忙的时候发来的请求
- 183   1          //ES = 1;
- 184   1      }
+ 184   1          //ES = 1;
+ 185   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1006    ----
+   CODE SIZE        =    987    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----      12
    PDATA SIZE       =   ----    ----
