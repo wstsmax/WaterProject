@@ -139,7 +139,7 @@ unsigned long Flow_to_Valve_PublicMode(void)
     unsigned int xdata HL = 0;
     unsigned long xdata HLC = 0;
     int i;
-    HL = Get_HLvalue(RechargeFlow_01, RechargeFlow_02);
+    HL = Get_HLvalue(DeviceFlow_01, DeviceFlow_02);
     for (i = 0; i < HL; i++)
     {
         HLC = HLC + Valve001L;
