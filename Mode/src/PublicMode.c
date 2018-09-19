@@ -143,6 +143,13 @@ void PublicMode_Start(void)
                         //GPRS_SendData(COMMAND_USEWATERUPLOAD, MODE_PUBLIC, STATUS_OPENDEVICE); //向服务器上传取水命令回执
                         goto STOPWATER;
                     }
+                    else if (Order == COMMAND_ERRORUPLOAD)
+                    {
+                        DeviceMode = IapRead(EEPROM_DeviceMode);
+                        DeviceStatus = IapRead(EEPROM_DeviceStatus);
+                        GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus);
+                        Order = COMMAND_HEARTBEATPACKET;
+                    }
                     if (ValveCountDown <= 0)
                     {
                         Valve_Switch(OFF);
