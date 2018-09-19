@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   EEPROM                                                            09/19/2018 09:47:40 PAGE 1   
+C51 COMPILER V9.59.0.0   EEPROM                                                            09/19/2018 10:19:43 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE EEPROM
@@ -62,7 +62,7 @@ line level    source
   51   1          IAP_ADDRL = addr;      //设置IAP低地址
   52   1          IAP_ADDRH = addr >> 8; //设置IAP高地址
   53   1          IAP_TRIG = 0x5a;       //写触发命令(0x5a)
-C51 COMPILER V9.59.0.0   EEPROM                                                            09/19/2018 09:47:40 PAGE 2   
+C51 COMPILER V9.59.0.0   EEPROM                                                            09/19/2018 10:19:43 PAGE 2   
 
   54   1          IAP_TRIG = 0xa5;       //写触发命令(0xa5)
   55   1          _nop_();               //

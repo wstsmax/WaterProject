@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   PACKET                                                            09/19/2018 09:47:42 PAGE 1   
+C51 COMPILER V9.59.0.0   PACKET                                                            09/19/2018 10:19:43 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE PACKET
@@ -62,7 +62,7 @@ line level    source
   51          //char xdata Rx_Buffer_AT[MAX_SIZE] = {0x00}; //接收缓冲区
   52          
   53          unsigned long data ValveCountDown = 0;  //剩余脉冲计量值（递减）
-C51 COMPILER V9.59.0.0   PACKET                                                            09/19/2018 09:47:42 PAGE 2   
+C51 COMPILER V9.59.0.0   PACKET                                                            09/19/2018 10:19:43 PAGE 2   
 
   54          unsigned char ValveCountDown_H = 0x00;  //剩余脉冲计量值（递减）高八位
   55          unsigned char ValveCountDown_M1 = 0x00; //剩余脉冲计量值（递减）中高八位

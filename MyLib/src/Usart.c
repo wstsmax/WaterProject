@@ -152,8 +152,8 @@ void Uart1_Recv_Deal(void)
     Check = DeviceID_01 + DeviceID_02 + DeviceID_03 + DeviceID_04 + DeviceMode + Order + DeviceStatus + DeviceFlow_01 + DeviceFlow_02 + RechargeFlow_01 + RechargeFlow_02 + RechargeDay_01 + RechargeDay_02 + SurplusFlow_01 + SurplusFlow_02 + SurplusDay_01 + SurplusDay_02 + UsedFlow_01 + UsedFlow_02 + UsedDay_01 + UsedDay_02 + WaterTDS_01 + WaterTDS_02 + GPRSSignal + ICCID1_01 + ICCID1_02 + ICCID2_01 + ICCID2_02 + ICCID3_01 + ICCID3_02 + ICCID4_01 + ICCID4_02 + ICCID5_01 + ICCID5_02;
     HCheck = (short)(Check >> 8);   //提取校验位高八位
     LCheck = (short)(Check & 0xff); //提取校验位低八位
-    if(Check_02 != LCheck)
-        Order = COMMAND_ERRORUPLOAD; 
+    // if(Check_02 != LCheck)
+    //     Order = COMMAND_ERRORUPLOAD; 
     // if ((Check_01 != HCheck) && (Check_02 != LCheck)) //比较计算的校验位是否与数据包中校验位相等
     // {
     //     Order = COMMAND_ERRORUPLOAD;
