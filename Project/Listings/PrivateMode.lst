@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:21:06 PAGE 1   
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:35:39 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE PRIVATEMODE
@@ -57,278 +57,283 @@ line level    source
   45   4                  }
   46   3                  else if (Order == COMMAND_ERRORUPLOAD)
   47   3                  {
-  48   4                      GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus);
-  49   4                  }
-  50   3              }
-  51   2              else
-  52   2              {
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:21:06 PAGE 2   
+  48   4                      DeviceMode = IapRead(EEPROM_DeviceMode);
+  49   4                      DeviceStatus = IapRead(EEPROM_DeviceStatus);
+  50   4                      GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus);
+  51   4                      Order = COMMAND_HEARTBEATPACKET;
+  52   4                  }
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:35:39 PAGE 2   
 
-  53   3                  if (Order == COMMAND_ERRORUPLOAD)
-  54   3                  {
-  55   4                      GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus); //向服务器上传错误�
-             -�令
-  56   4                  }
-  57   3                  else if (Order == COMMAND_DEVICECLOSE) //关机命令
-  58   3                  {
-  59   4                      Valve_Switch(OFF);
-  60   4                      DeviceStatus = STATUS_CLOSEDEVICE;
-  61   4                      IapErase(EEPROM_DeviceStatus);
-  62   4                      IapProgram(EEPROM_DeviceStatus, STATUS_CLOSEDEVICE);
-  63   4                      GPRS_SendData(COMMAND_RECV_DEVICECLOSE, MODE_FLOW, STATUS_CLOSEDEVICE); //向服务器上�
+  53   3              }
+  54   2              else
+  55   2              {
+  56   3                  if (Order == COMMAND_ERRORUPLOAD)
+  57   3                  {
+  58   4                          DeviceMode = IapRead(EEPROM_DeviceMode);
+  59   4                          DeviceStatus = IapRead(EEPROM_DeviceStatus);
+  60   4                          GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus);
+  61   4                          Order = COMMAND_HEARTBEATPACKET;
+  62   4                  }
+  63   3                  else if (Order == COMMAND_DEVICECLOSE) //关机命令
+  64   3                  {
+  65   4                      Valve_Switch(OFF);
+  66   4                      DeviceStatus = STATUS_CLOSEDEVICE;
+  67   4                      IapErase(EEPROM_DeviceStatus);
+  68   4                      IapProgram(EEPROM_DeviceStatus, STATUS_CLOSEDEVICE);
+  69   4                      GPRS_SendData(COMMAND_RECV_DEVICECLOSE, MODE_FLOW, STATUS_CLOSEDEVICE); //向服务器上�
              -��关机命令回执
-  64   4                      Order = COMMAND_HEARTBEATPACKET;
-  65   4                  }
-  66   3                  else if (Order == COMMAND_DEVICEOPEN) //开机命令
-  67   3                  {
-  68   4                      if (ValveCountDown > 0)
-  69   4                      {
-  70   5                          Valve_Switch(ON); //打开脉冲阀
-  71   5                          DeviceStatus = STATUS_OPENDEVICE;
-  72   5                          IapErase(EEPROM_DeviceStatus);
-  73   5                          IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
-  74   5                      }
-  75   4                      else if (ValveCountDown == 0)
-  76   4                      {
-  77   5                          Valve_Switch(OFF); //关闭脉冲阀
-  78   5                          DeviceStatus = STATUS_OPENDEVICE;
-  79   5                          IapErase(EEPROM_DeviceStatus);
-  80   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
-  81   5                      }
-  82   4                      else if (ValveCountDown < 0)
-  83   4                      {
-  84   5                          Valve_Switch(OFF); //关闭脉冲阀
-  85   5                          DeviceStatus = STATUS_ARREARAGE;
-  86   5                          IapErase(EEPROM_DeviceStatus);
-  87   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
-  88   5                      }
-  89   4                      GPRS_SendData(COMMAND_RECV_DEVICEOPEN, MODE_FLOW, DeviceStatus); //向服务器上传开�
+  70   4                      Order = COMMAND_HEARTBEATPACKET;
+  71   4                  }
+  72   3                  else if (Order == COMMAND_DEVICEOPEN) //开机命令
+  73   3                  {
+  74   4                      if (ValveCountDown > 0)
+  75   4                      {
+  76   5                          Valve_Switch(ON); //打开脉冲阀
+  77   5                          DeviceStatus = STATUS_OPENDEVICE;
+  78   5                          IapErase(EEPROM_DeviceStatus);
+  79   5                          IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
+  80   5                      }
+  81   4                      else if (ValveCountDown == 0)
+  82   4                      {
+  83   5                          Valve_Switch(OFF); //关闭脉冲阀
+  84   5                          DeviceStatus = STATUS_OPENDEVICE;
+  85   5                          IapErase(EEPROM_DeviceStatus);
+  86   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
+  87   5                      }
+  88   4                      else if (ValveCountDown < 0)
+  89   4                      {
+  90   5                          Valve_Switch(OFF); //关闭脉冲阀
+  91   5                          DeviceStatus = STATUS_ARREARAGE;
+  92   5                          IapErase(EEPROM_DeviceStatus);
+  93   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
+  94   5                      }
+  95   4                      GPRS_SendData(COMMAND_RECV_DEVICEOPEN, MODE_FLOW, DeviceStatus); //向服务器上传开�
              -�命令回执
-  90   4                      Order = COMMAND_HEARTBEATPACKET;
-  91   4                  }
-  92   3                  else if (Order == COMMAND_RECHARGE) //充值命令
-  93   3                  {
-  94   4                      ValveCountDown_New = Flow_to_Valve_FlowMode();
-  95   4                      ValveCountDown_Old = ValveCountDown;
-  96   4                      ValveCountDown = ValveCountDown_Old + ValveCountDown_New;
-  97   4                      ValveCountDown_H = (unsigned short)Get_Long_H(ValveCountDown);
-  98   4                      ValveCountDown_M1 = (unsigned short)Get_Long_M1(ValveCountDown);
-  99   4                      ValveCountDown_M2 = (unsigned short)Get_Long_M2(ValveCountDown);
- 100   4                      ValveCountDown_L = (unsigned short)Get_Long_L(ValveCountDown);
- 101   4                      IapErase(EEPROM_Vavle);
- 102   4                      IapProgram(EEPROM_Vavle, ValveCountDown_H);
- 103   4                      IapProgram(EEPROM_Vavle + 1, ValveCountDown_M1);
- 104   4                      IapProgram(EEPROM_Vavle + 2, ValveCountDown_M2);
- 105   4                      IapProgram(EEPROM_Vavle + 3, ValveCountDown_L);
- 106   4      
- 107   4                      if (ValveCountDown > 0)
- 108   4                      {
- 109   5                          Valve_Switch(ON); //打开脉冲阀
- 110   5                          DeviceStatus = STATUS_OPENDEVICE;
- 111   5                          IapErase(EEPROM_DeviceStatus);
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:21:06 PAGE 3   
+  96   4                      Order = COMMAND_HEARTBEATPACKET;
+  97   4                  }
+  98   3                  else if (Order == COMMAND_RECHARGE) //充值命令
+  99   3                  {
+ 100   4                      ValveCountDown_New = Flow_to_Valve_FlowMode();
+ 101   4                      ValveCountDown_Old = ValveCountDown;
+ 102   4                      ValveCountDown = ValveCountDown_Old + ValveCountDown_New;
+ 103   4                      ValveCountDown_H = (unsigned short)Get_Long_H(ValveCountDown);
+ 104   4                      ValveCountDown_M1 = (unsigned short)Get_Long_M1(ValveCountDown);
+ 105   4                      ValveCountDown_M2 = (unsigned short)Get_Long_M2(ValveCountDown);
+ 106   4                      ValveCountDown_L = (unsigned short)Get_Long_L(ValveCountDown);
+ 107   4                      IapErase(EEPROM_Vavle);
+ 108   4                      IapProgram(EEPROM_Vavle, ValveCountDown_H);
+ 109   4                      IapProgram(EEPROM_Vavle + 1, ValveCountDown_M1);
+ 110   4                      IapProgram(EEPROM_Vavle + 2, ValveCountDown_M2);
+ 111   4                      IapProgram(EEPROM_Vavle + 3, ValveCountDown_L);
+ 112   4      
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:35:39 PAGE 3   
 
- 112   5                          IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
- 113   5                      }
- 114   4                      else if (ValveCountDown == 0)
- 115   4                      {
- 116   5                          Valve_Switch(OFF); //关闭脉冲阀
- 117   5                          DeviceStatus = STATUS_OPENDEVICE;
- 118   5                          IapErase(EEPROM_DeviceStatus);
- 119   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
- 120   5                      }
- 121   4                      else if (ValveCountDown < 0)
- 122   4                      {
- 123   5                          Valve_Switch(OFF); //关闭脉冲阀
- 124   5                          DeviceStatus = STATUS_ARREARAGE;
- 125   5                          IapErase(EEPROM_DeviceStatus);
- 126   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
- 127   5                      }
- 128   4      
- 129   4                      GPRS_SendData(COMMAND_RECV_RECHARGE, MODE_FLOW, DeviceStatus); //向服务器上传脉冲�
+ 113   4                      if (ValveCountDown > 0)
+ 114   4                      {
+ 115   5                          Valve_Switch(ON); //打开脉冲阀
+ 116   5                          DeviceStatus = STATUS_OPENDEVICE;
+ 117   5                          IapErase(EEPROM_DeviceStatus);
+ 118   5                          IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
+ 119   5                      }
+ 120   4                      else if (ValveCountDown == 0)
+ 121   4                      {
+ 122   5                          Valve_Switch(OFF); //关闭脉冲阀
+ 123   5                          DeviceStatus = STATUS_OPENDEVICE;
+ 124   5                          IapErase(EEPROM_DeviceStatus);
+ 125   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
+ 126   5                      }
+ 127   4                      else if (ValveCountDown < 0)
+ 128   4                      {
+ 129   5                          Valve_Switch(OFF); //关闭脉冲阀
+ 130   5                          DeviceStatus = STATUS_ARREARAGE;
+ 131   5                          IapErase(EEPROM_DeviceStatus);
+ 132   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
+ 133   5                      }
+ 134   4      
+ 135   4                      GPRS_SendData(COMMAND_RECV_RECHARGE, MODE_FLOW, DeviceStatus); //向服务器上传脉冲�
              -��值回执
- 130   4                      RechargeFlow_01 = 0x00;
- 131   4                      RechargeFlow_02 = 0x00;
- 132   4                      Order = COMMAND_HEARTBEATPACKET;
- 133   4                  }
- 134   3                  else if (Order == COMMAND_DEVICEINFOR) //查询设备信息
- 135   3                  {
- 136   4                      DeviceMode = IapRead(EEPROM_DeviceMode);
- 137   4                      DeviceStatus = IapRead(EEPROM_DeviceStatus);
- 138   4                      GPRS_SendData(COMMAND_RECV_DEVICEINFOR, DeviceMode, DeviceStatus); //向服务器上传模
+ 136   4                      RechargeFlow_01 = 0x00;
+ 137   4                      RechargeFlow_02 = 0x00;
+ 138   4                      Order = COMMAND_HEARTBEATPACKET;
+ 139   4                  }
+ 140   3                  else if (Order == COMMAND_DEVICEINFOR) //查询设备信息
+ 141   3                  {
+ 142   4                      DeviceMode = IapRead(EEPROM_DeviceMode);
+ 143   4                      DeviceStatus = IapRead(EEPROM_DeviceStatus);
+ 144   4                      GPRS_SendData(COMMAND_RECV_DEVICEINFOR, DeviceMode, DeviceStatus); //向服务器上传模
              -式切换回执
- 139   4                      Order = COMMAND_HEARTBEATPACKET;
- 140   4                      // return;
- 141   4                  }
- 142   3                  else if (Order == COMMAND_RECOVERY) //恢复出厂设置
- 143   3                  {
- 144   4                      Valve_Switch(OFF);
- 145   4                      Recovery_PacketData();
- 146   4                      GPRS_SendData(COMMAND_RECV_RECOVERY, DeviceMode, DeviceStatus); //向服务器上传恢复
+ 145   4                      Order = COMMAND_HEARTBEATPACKET;
+ 146   4                      // return;
+ 147   4                  }
+ 148   3                  else if (Order == COMMAND_RECOVERY) //恢复出厂设置
+ 149   3                  {
+ 150   4                      Valve_Switch(OFF);
+ 151   4                      Recovery_PacketData();
+ 152   4                      GPRS_SendData(COMMAND_RECV_RECOVERY, DeviceMode, DeviceStatus); //向服务器上传恢复
              -出厂设置回执
- 147   4                      Order = COMMAND_HEARTBEATPACKET;
- 148   4                      return;
- 149   4                  }
- 150   3                  else if (Order == COMMAND_SYSTEMINIT) //更换模式
- 151   3                  {
- 152   4                      Valve_Switch(OFF);
- 153   4                      SystemInit_PacketData();
- 154   4                      GPRS_SendData(COMMAND_RECV_SYSTEMINIT, DeviceMode, DeviceStatus); //向服务器上传模�
+ 153   4                      Order = COMMAND_HEARTBEATPACKET;
+ 154   4                      return;
+ 155   4                  }
+ 156   3                  else if (Order == COMMAND_SYSTEMINIT) //更换模式
+ 157   3                  {
+ 158   4                      Valve_Switch(OFF);
+ 159   4                      SystemInit_PacketData();
+ 160   4                      GPRS_SendData(COMMAND_RECV_SYSTEMINIT, DeviceMode, DeviceStatus); //向服务器上传模�
              -��切换命令回执
- 155   4                      Order = COMMAND_MODESWITCH;
- 156   4                      return;
- 157   4                  }
- 158   3                  else if (Order == COMMAND_DEVICELOCK) //机器锁定命令
- 159   3                  {
- 160   4                      //Valve_Switch(Lock); //第一次接收机器锁定命令，关闭脉冲阀，第二次接
+ 161   4                      Order = COMMAND_MODESWITCH;
+ 162   4                      return;
+ 163   4                  }
+ 164   3                  else if (Order == COMMAND_DEVICELOCK) //机器锁定命令
+ 165   3                  {
+ 166   4                      //Valve_Switch(Lock); //第一次接收机器锁定命令，关闭脉冲阀，第二次接
              -到机器锁定命令，打开脉冲阀
- 161   4                      if (Lock == ON)
- 162   4                      {
- 163   5                          Valve_Switch(OFF);
- 164   5                          DeviceStatus = STATUS_LOCKDEVICE; //关闭脉冲阀
- 165   5                          IapErase(EEPROM_DeviceStatus);
- 166   5                          IapProgram(EEPROM_DeviceStatus, STATUS_LOCKDEVICE);
- 167   5                          GPRS_SendData(COMMAND_RECV_DEVICELOCK, MODE_FLOW, DeviceStatus); //向服务器上传�
-             -��器锁定回执
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:21:06 PAGE 4   
+ 167   4                      if (Lock == ON)
+ 168   4                      {
+ 169   5                          Valve_Switch(OFF);
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:35:39 PAGE 4   
 
- 168   5                          Order = COMMAND_HEARTBEATPACKET;
- 169   5                          Lock = OFF;
- 170   5                      }
- 171   4                      else if (Lock == OFF)
- 172   4                      {
- 173   5                          if (ValveCountDown > 0)
- 174   5                          {
- 175   6                              Valve_Switch(ON); //打开脉冲阀
- 176   6                              DeviceStatus = STATUS_OPENDEVICE;
- 177   6                              IapErase(EEPROM_DeviceStatus);
- 178   6                              IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
- 179   6                          }
- 180   5                          else if (ValveCountDown == 0)
- 181   5                          {
- 182   6                              Valve_Switch(OFF); //关闭脉冲阀
- 183   6                              DeviceStatus = STATUS_OPENDEVICE;
- 184   6                              IapErase(EEPROM_DeviceStatus);
- 185   6                              IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
- 186   6                          }
- 187   5                          else if (ValveCountDown < 0)
- 188   5                          {
- 189   6                              Valve_Switch(OFF); //关闭脉冲阀
- 190   6                              DeviceStatus = STATUS_ARREARAGE;
- 191   6                              IapErase(EEPROM_DeviceStatus);
- 192   6                              IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
- 193   6                          }
- 194   5                          GPRS_SendData(COMMAND_RECV_DEVICELOCK, MODE_FLOW, DeviceStatus); //向服务器上传�
+ 170   5                          DeviceStatus = STATUS_LOCKDEVICE; //关闭脉冲阀
+ 171   5                          IapErase(EEPROM_DeviceStatus);
+ 172   5                          IapProgram(EEPROM_DeviceStatus, STATUS_LOCKDEVICE);
+ 173   5                          GPRS_SendData(COMMAND_RECV_DEVICELOCK, MODE_FLOW, DeviceStatus); //向服务器上传�
              -��器锁定回执
- 195   5                          Order = COMMAND_HEARTBEATPACKET;
- 196   5                          Lock = ON;
- 197   5                      }
- 198   4                  }
- 199   3                  if (StartBool == True)
- 200   3                  {
- 201   4                      if (ValveCountDown > 0)
- 202   4                      {
- 203   5                          Valve_Switch(ON); //打开脉冲阀
- 204   5                          DeviceStatus = STATUS_OPENDEVICE;
- 205   5                          IapErase(EEPROM_DeviceStatus);
- 206   5                          IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
- 207   5                      }
- 208   4                      else if (ValveCountDown == 0)
- 209   4                      {
- 210   5                          Valve_Switch(OFF); //关闭脉冲阀
- 211   5                          DeviceStatus = STATUS_OPENDEVICE;
- 212   5                          IapErase(EEPROM_DeviceStatus);
- 213   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
- 214   5                      }
- 215   4                      else if (ValveCountDown < 0)
- 216   4                      {
- 217   5                          Valve_Switch(OFF); //关闭脉冲阀
- 218   5                          DeviceStatus = STATUS_ARREARAGE;
- 219   5                          IapErase(EEPROM_DeviceStatus);
- 220   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
- 221   5                      }
- 222   4                      StartBool = False;
- 223   4                  }
- 224   3                  if (StopBool == True) //用水同步命令
- 225   3                  {
- 226   4                      if (ValveCountDown > 0)
- 227   4                      {
- 228   5                          Valve_Switch(ON); //打开脉冲阀
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:21:06 PAGE 5   
+ 174   5                          Order = COMMAND_HEARTBEATPACKET;
+ 175   5                          Lock = OFF;
+ 176   5                      }
+ 177   4                      else if (Lock == OFF)
+ 178   4                      {
+ 179   5                          if (ValveCountDown > 0)
+ 180   5                          {
+ 181   6                              Valve_Switch(ON); //打开脉冲阀
+ 182   6                              DeviceStatus = STATUS_OPENDEVICE;
+ 183   6                              IapErase(EEPROM_DeviceStatus);
+ 184   6                              IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
+ 185   6                          }
+ 186   5                          else if (ValveCountDown == 0)
+ 187   5                          {
+ 188   6                              Valve_Switch(OFF); //关闭脉冲阀
+ 189   6                              DeviceStatus = STATUS_OPENDEVICE;
+ 190   6                              IapErase(EEPROM_DeviceStatus);
+ 191   6                              IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
+ 192   6                          }
+ 193   5                          else if (ValveCountDown < 0)
+ 194   5                          {
+ 195   6                              Valve_Switch(OFF); //关闭脉冲阀
+ 196   6                              DeviceStatus = STATUS_ARREARAGE;
+ 197   6                              IapErase(EEPROM_DeviceStatus);
+ 198   6                              IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
+ 199   6                          }
+ 200   5                          GPRS_SendData(COMMAND_RECV_DEVICELOCK, MODE_FLOW, DeviceStatus); //向服务器上传�
+             -��器锁定回执
+ 201   5                          Order = COMMAND_HEARTBEATPACKET;
+ 202   5                          Lock = ON;
+ 203   5                      }
+ 204   4                  }
+ 205   3                  if (StartBool == True)
+ 206   3                  {
+ 207   4                      if (ValveCountDown > 0)
+ 208   4                      {
+ 209   5                          Valve_Switch(ON); //打开脉冲阀
+ 210   5                          DeviceStatus = STATUS_OPENDEVICE;
+ 211   5                          IapErase(EEPROM_DeviceStatus);
+ 212   5                          IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
+ 213   5                      }
+ 214   4                      else if (ValveCountDown == 0)
+ 215   4                      {
+ 216   5                          Valve_Switch(OFF); //关闭脉冲阀
+ 217   5                          DeviceStatus = STATUS_OPENDEVICE;
+ 218   5                          IapErase(EEPROM_DeviceStatus);
+ 219   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
+ 220   5                      }
+ 221   4                      else if (ValveCountDown < 0)
+ 222   4                      {
+ 223   5                          Valve_Switch(OFF); //关闭脉冲阀
+ 224   5                          DeviceStatus = STATUS_ARREARAGE;
+ 225   5                          IapErase(EEPROM_DeviceStatus);
+ 226   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
+ 227   5                      }
+ 228   4                      StartBool = False;
+ 229   4                  }
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:35:39 PAGE 5   
 
- 229   5                          DeviceStatus = STATUS_OPENDEVICE;
- 230   5                          IapErase(EEPROM_DeviceStatus);
- 231   5                          IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
- 232   5                      }
- 233   4                      else if (ValveCountDown == 0)
- 234   4                      {
- 235   5                          Valve_Switch(OFF); //关闭脉冲阀
- 236   5                          DeviceStatus = STATUS_OPENDEVICE;
- 237   5                          IapErase(EEPROM_DeviceStatus);
- 238   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
- 239   5                      }
- 240   4                      else if (ValveCountDown < 0)
- 241   4                      {
- 242   5                          Valve_Switch(OFF); //关闭脉冲阀
- 243   5                          DeviceStatus = STATUS_ARREARAGE;
- 244   5                          IapErase(EEPROM_DeviceStatus);
- 245   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
- 246   5                      }
- 247   4                      ValveCountDown_H = Get_Long_H(ValveCountDown);
- 248   4                      ValveCountDown_M1 = Get_Long_M1(ValveCountDown);
- 249   4                      ValveCountDown_M2 = Get_Long_M2(ValveCountDown);
- 250   4                      ValveCountDown_L = Get_Long_L(ValveCountDown);
- 251   4      
- 252   4                      IapErase(EEPROM_Vavle);
- 253   4                      IapProgram(EEPROM_Vavle, ValveCountDown_H);
- 254   4                      IapProgram(EEPROM_Vavle + 1, ValveCountDown_M1);
- 255   4                      IapProgram(EEPROM_Vavle + 2, ValveCountDown_M2);
- 256   4                      IapProgram(EEPROM_Vavle + 3, ValveCountDown_L);
+ 230   3                  if (StopBool == True) //用水同步命令
+ 231   3                  {
+ 232   4                      if (ValveCountDown > 0)
+ 233   4                      {
+ 234   5                          Valve_Switch(ON); //打开脉冲阀
+ 235   5                          DeviceStatus = STATUS_OPENDEVICE;
+ 236   5                          IapErase(EEPROM_DeviceStatus);
+ 237   5                          IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
+ 238   5                      }
+ 239   4                      else if (ValveCountDown == 0)
+ 240   4                      {
+ 241   5                          Valve_Switch(OFF); //关闭脉冲阀
+ 242   5                          DeviceStatus = STATUS_OPENDEVICE;
+ 243   5                          IapErase(EEPROM_DeviceStatus);
+ 244   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
+ 245   5                      }
+ 246   4                      else if (ValveCountDown < 0)
+ 247   4                      {
+ 248   5                          Valve_Switch(OFF); //关闭脉冲阀
+ 249   5                          DeviceStatus = STATUS_ARREARAGE;
+ 250   5                          IapErase(EEPROM_DeviceStatus);
+ 251   5                          IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
+ 252   5                      }
+ 253   4                      ValveCountDown_H = Get_Long_H(ValveCountDown);
+ 254   4                      ValveCountDown_M1 = Get_Long_M1(ValveCountDown);
+ 255   4                      ValveCountDown_M2 = Get_Long_M2(ValveCountDown);
+ 256   4                      ValveCountDown_L = Get_Long_L(ValveCountDown);
  257   4      
- 258   4                      ValveAll_H = Get_Long_H(ValveAll);
- 259   4                      ValveAll_M1 = Get_Long_M1(ValveAll);
- 260   4                      ValveAll_M2 = Get_Long_M2(ValveAll);
- 261   4                      ValveAll_L = Get_Long_L(ValveAll);
- 262   4      
- 263   4                      IapErase(EEPROM_VavleALL);
- 264   4                      IapProgram(EEPROM_Vavle, ValveAll_H);
- 265   4                      IapProgram(EEPROM_Vavle + 1, ValveAll_M1);
- 266   4                      IapProgram(EEPROM_Vavle + 2, ValveAll_M2);
- 267   4                      IapProgram(EEPROM_Vavle + 3, ValveAll_L);
+ 258   4                      IapErase(EEPROM_Vavle);
+ 259   4                      IapProgram(EEPROM_Vavle, ValveCountDown_H);
+ 260   4                      IapProgram(EEPROM_Vavle + 1, ValveCountDown_M1);
+ 261   4                      IapProgram(EEPROM_Vavle + 2, ValveCountDown_M2);
+ 262   4                      IapProgram(EEPROM_Vavle + 3, ValveCountDown_L);
+ 263   4      
+ 264   4                      ValveAll_H = Get_Long_H(ValveAll);
+ 265   4                      ValveAll_M1 = Get_Long_M1(ValveAll);
+ 266   4                      ValveAll_M2 = Get_Long_M2(ValveAll);
+ 267   4                      ValveAll_L = Get_Long_L(ValveAll);
  268   4      
- 269   4                      GPRS_SendData(COMMAND_USEWATERUPLOAD, DeviceMode, DeviceStatus); //向服务器上传用�
+ 269   4                      IapErase(EEPROM_VavleALL);
+ 270   4                      IapProgram(EEPROM_Vavle, ValveAll_H);
+ 271   4                      IapProgram(EEPROM_Vavle + 1, ValveAll_M1);
+ 272   4                      IapProgram(EEPROM_Vavle + 2, ValveAll_M2);
+ 273   4                      IapProgram(EEPROM_Vavle + 3, ValveAll_L);
+ 274   4      
+ 275   4                      GPRS_SendData(COMMAND_USEWATERUPLOAD, DeviceMode, DeviceStatus); //向服务器上传用�
              -�同步命令
- 270   4                      StopBool = False;
- 271   4                  }
- 272   3              }
- 273   2              if ((RECV_Return("CLOSED", NULL) == True) || (RECV_Return_Special("CLOSED", NULL) == True))
- 274   2              {
- 275   3                  GPRS_ConnectClose();
- 276   3                  GPRS_ConnectCreat(IP, Port);
- 277   3                  Send_OK_Flag = True;
- 278   3                  Order = COMMAND_MODESWITCH;
- 279   3                  Clear_Buf(Rx_Buffer_AT);
- 280   3                  Clear_Buf(Rx_Buffer);
- 281   3                  return;
- 282   3              }
- 283   2              if ((RECV_Return("PDP:", NULL) == True) || (RECV_Return_Special("PDP:", NULL) == True))
- 284   2              {
- 285   3                  GPRS_ConnectClose();
- 286   3                  GPRS_ConnectCreat(IP, Port);
- 287   3                  Send_OK_Flag = True;
- 288   3                  Order = COMMAND_MODESWITCH;
- 289   3                  Clear_Buf(Rx_Buffer_AT);
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:21:06 PAGE 6   
+ 276   4                      StopBool = False;
+ 277   4                  }
+ 278   3              }
+ 279   2              if ((RECV_Return("CLOSED", NULL) == True) || (RECV_Return_Special("CLOSED", NULL) == True))
+ 280   2              {
+ 281   3                  GPRS_ConnectClose();
+ 282   3                  GPRS_ConnectCreat(IP, Port);
+ 283   3                  Send_OK_Flag = True;
+ 284   3                  Order = COMMAND_MODESWITCH;
+ 285   3                  Clear_Buf(Rx_Buffer_AT);
+ 286   3                  Clear_Buf(Rx_Buffer);
+ 287   3                  return;
+ 288   3              }
+ 289   2              if ((RECV_Return("PDP:", NULL) == True) || (RECV_Return_Special("PDP:", NULL) == True))
+ 290   2              {
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:35:39 PAGE 6   
 
- 290   3                  Clear_Buf(Rx_Buffer);
- 291   3                  return;
- 292   3              }
- 293   2          }
- 294   1      }
+ 291   3                  GPRS_ConnectClose();
+ 292   3                  GPRS_ConnectCreat(IP, Port);
+ 293   3                  Send_OK_Flag = True;
+ 294   3                  Order = COMMAND_MODESWITCH;
+ 295   3                  Clear_Buf(Rx_Buffer_AT);
+ 296   3                  Clear_Buf(Rx_Buffer);
+ 297   3                  return;
+ 298   3              }
+ 299   2          }
+ 300   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1649    ----
+   CODE SIZE        =   1691    ----
    CONSTANT SIZE    =     36    ----
    XDATA SIZE       =   ----       8
    PDATA SIZE       =   ----    ----

@@ -92,6 +92,13 @@ int main(void)
                     Order = COMMAND_HEARTBEATPACKET;
                     goto MODESWITCH;
                 }
+                if (Order == COMMAND_ERRORUPLOAD) //ID编码
+                {
+                    DeviceMode = IapRead(EEPROM_DeviceMode);
+                    DeviceStatus = IapRead(EEPROM_DeviceStatus);
+                    GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus);
+                    Order = COMMAND_HEARTBEATPACKET;
+                }
                 if ((RECV_Return("CLOSED", NULL) == True) || (RECV_Return_Special("CLOSED", NULL) == True))
                 {
                     GPRS_ConnectClose();

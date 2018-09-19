@@ -43,14 +43,20 @@ void PublicMode_Start(void)
             }
             else if (Order == COMMAND_ERRORUPLOAD)
             {
+                DeviceMode = IapRead(EEPROM_DeviceMode);
+                DeviceStatus = IapRead(EEPROM_DeviceStatus);
                 GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus);
+                Order = COMMAND_HEARTBEATPACKET;
             }
         }
         else
         {
             if (Order == COMMAND_ERRORUPLOAD)
             {
-                GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus); //向服务器上传错误命令
+                DeviceMode = IapRead(EEPROM_DeviceMode);
+                DeviceStatus = IapRead(EEPROM_DeviceStatus);
+                GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus);
+                Order = COMMAND_HEARTBEATPACKET;
             }
             else if (Order == COMMAND_DEVICECLOSE) //关机命令
             {
