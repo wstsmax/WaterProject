@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:35:39 PAGE 1   
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 11:03:13 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE PRIVATEMODE
@@ -62,7 +62,7 @@ line level    source
   50   4                      GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus);
   51   4                      Order = COMMAND_HEARTBEATPACKET;
   52   4                  }
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:35:39 PAGE 2   
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 11:03:13 PAGE 2   
 
   53   3              }
   54   2              else
@@ -126,7 +126,7 @@ line level    source
  110   4                      IapProgram(EEPROM_Vavle + 2, ValveCountDown_M2);
  111   4                      IapProgram(EEPROM_Vavle + 3, ValveCountDown_L);
  112   4      
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:35:39 PAGE 3   
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 11:03:13 PAGE 3   
 
  113   4                      if (ValveCountDown > 0)
  114   4                      {
@@ -190,7 +190,7 @@ line level    source
  167   4                      if (Lock == ON)
  168   4                      {
  169   5                          Valve_Switch(OFF);
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:35:39 PAGE 4   
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 11:03:13 PAGE 4   
 
  170   5                          DeviceStatus = STATUS_LOCKDEVICE; //关闭脉冲阀
  171   5                          IapErase(EEPROM_DeviceStatus);
@@ -254,7 +254,7 @@ line level    source
  227   5                      }
  228   4                      StartBool = False;
  229   4                  }
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:35:39 PAGE 5   
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 11:03:13 PAGE 5   
 
  230   3                  if (StopBool == True) //用水同步命令
  231   3                  {
@@ -318,7 +318,7 @@ line level    source
  288   3              }
  289   2              if ((RECV_Return("PDP:", NULL) == True) || (RECV_Return_Special("PDP:", NULL) == True))
  290   2              {
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:35:39 PAGE 6   
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 11:03:13 PAGE 6   
 
  291   3                  GPRS_ConnectClose();
  292   3                  GPRS_ConnectCreat(IP, Port);

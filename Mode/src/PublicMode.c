@@ -158,6 +158,8 @@ void PublicMode_Start(void)
                         StopBool = False;
                         //Valve_Switch(OFF);
                         //GPRS_SendData(COMMAND_RECV_STOPWATER, MODE_PUBLIC, STATUS_OPENDEVICE); //向服务器上传取水命令回执
+                        if (ValveCountDown <= 0)
+                            ValveCountDown = 0;
                         if (ValveCount != 0)
                             GPRS_SendData(COMMAND_USEWATERUPLOAD, MODE_PUBLIC, STATUS_OPENDEVICE); //向服务器上传取水命令回执
                         ValveCount = 0;
