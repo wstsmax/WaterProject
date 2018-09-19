@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 09:47:35 PAGE 1   
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:14:30 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE PRIVATEMODE
@@ -62,7 +62,7 @@ line level    source
   50   3              }
   51   2              else
   52   2              {
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 09:47:35 PAGE 2   
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:14:30 PAGE 2   
 
   53   3                  if (Order == COMMAND_ERRORUPLOAD)
   54   3                  {
@@ -126,7 +126,7 @@ line level    source
  109   5                          Valve_Switch(ON); //打开脉冲阀
  110   5                          DeviceStatus = STATUS_OPENDEVICE;
  111   5                          IapErase(EEPROM_DeviceStatus);
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 09:47:35 PAGE 3   
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:14:30 PAGE 3   
 
  112   5                          IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
  113   5                      }
@@ -190,7 +190,7 @@ line level    source
  166   5                          IapProgram(EEPROM_DeviceStatus, STATUS_LOCKDEVICE);
  167   5                          GPRS_SendData(COMMAND_RECV_DEVICELOCK, MODE_FLOW, DeviceStatus); //向服务器上传�
              -��器锁定回执
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 09:47:35 PAGE 4   
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:14:30 PAGE 4   
 
  168   5                          Order = COMMAND_HEARTBEATPACKET;
  169   5                          Lock = OFF;
@@ -254,7 +254,7 @@ line level    source
  226   4                      if (ValveCountDown > 0)
  227   4                      {
  228   5                          Valve_Switch(ON); //打开脉冲阀
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 09:47:35 PAGE 5   
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:14:30 PAGE 5   
 
  229   5                          DeviceStatus = STATUS_OPENDEVICE;
  230   5                          IapErase(EEPROM_DeviceStatus);
@@ -318,7 +318,7 @@ line level    source
  287   3                  Send_OK_Flag = True;
  288   3                  Order = COMMAND_MODESWITCH;
  289   3                  Clear_Buf(Rx_Buffer_AT);
-C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 09:47:35 PAGE 6   
+C51 COMPILER V9.59.0.0   PRIVATEMODE                                                       09/19/2018 10:14:30 PAGE 6   
 
  290   3                  Clear_Buf(Rx_Buffer);
  291   3                  return;
