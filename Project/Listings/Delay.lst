@@ -1,0 +1,79 @@
+C51 COMPILER V9.59.0.0   DELAY                                                             09/18/2018 16:38:23 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE DELAY
+OBJECT MODULE PLACED IN .\Objects\Delay.obj
+COMPILER INVOKED BY: F:\Keil_v5_C51\C51\BIN\C51.EXE ..\MyLib\src\Delay.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Protocol;..\
+                    -Mode\inc;..\MyLib\inc;..\Lib\inc;..\User) DEBUG OBJECTEXTEND PRINT(.\Listings\Delay.lst) TABS(2) OBJECT(.\Objects\Delay.
+                    -obj)
+
+line level    source
+
+   1          #include "STC8A8K32S4A12.h"
+   2          
+   3          #include "Delay.h"
+   4          #include "intrins.h"
+   5          
+   6          void Delay_S(int S)
+   7          {
+   8   1          unsigned char i, j, k;
+   9   1          while (S--)
+  10   1          {
+  11   2              _nop_();
+  12   2              _nop_();
+  13   2              i = 122;
+  14   2              j = 193;
+  15   2              k = 128;
+  16   2              do
+  17   2              {
+  18   3                  do
+  19   3                  {
+  20   4                      while (--k)
+  21   4                          ;
+  22   4                  } while (--j);
+  23   3              } while (--i);
+  24   2          }
+  25   1      }
+  26          
+  27          void Delay_MS(int MS)
+  28          {
+  29   1          unsigned char i, j;
+  30   1          while (MS--)
+  31   1          {
+  32   2              _nop_();
+  33   2              i = 32;
+  34   2              j = 40;
+  35   2              do
+  36   2              {
+  37   3                  while (--j)
+  38   3                      ;
+  39   3              } while (--i);
+  40   2          }
+  41   1      }
+  42          
+  43          // void Delay_US(int US)
+  44          // {
+  45          //     unsigned char i;
+  46          //     while (US--)
+  47          //     {
+  48          //         i = 6;
+  49          //         while (--i)
+  50          //             ;
+  51          //     }
+  52          // }
+
+C51 COMPILER V9.59.0.0   DELAY                                                             09/18/2018 16:38:23 PAGE 2   
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     49    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

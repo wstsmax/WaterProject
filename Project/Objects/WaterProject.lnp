@@ -1,0 +1,14 @@
+".\Objects\PrivateMode.obj",
+".\Objects\PublicFunction.obj",
+".\Objects\PublicMode.obj",
+".\Objects\Gprs.obj",
+".\Objects\Usart.obj",
+".\Objects\Delay.obj",
+".\Objects\IODeal.obj",
+".\Objects\Timer.obj",
+".\Objects\EEPROM.obj",
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\Packet.obj" 
+TO ".\Objects\WaterProject" 
+PRINT(".\Listings\WaterProject.m51") RAMSIZE(256) 

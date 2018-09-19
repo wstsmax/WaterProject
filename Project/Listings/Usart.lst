@@ -1,0 +1,223 @@
+C51 COMPILER V9.59.0.0   USART                                                             09/18/2018 16:38:22 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE USART
+OBJECT MODULE PLACED IN .\Objects\Usart.obj
+COMPILER INVOKED BY: F:\Keil_v5_C51\C51\BIN\C51.EXE ..\MyLib\src\Usart.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Protocol;..\
+                    -Mode\inc;..\MyLib\inc;..\Lib\inc;..\User) DEBUG OBJECTEXTEND PRINT(.\Listings\Usart.lst) TABS(2) OBJECT(.\Objects\Usart.
+                    -obj)
+
+line level    source
+
+   1          #include "STC8A8K32S4A12.h"
+   2          
+   3          #include "Usart.h"
+   4          #include "Gprs.h"
+   5          #include "Packet.h"
+   6          #include "Order.h"
+   7          #include "EEPROM.h"
+   8          #include "PublicFunction.h"
+   9          
+  10          #include "string.h"
+  11          
+  12          #define FOSC 24000000UL
+  13          #define BRT (65536 - FOSC / 115200 / 4)
+  14          
+  15          void Uart1_Init(void)
+  16          {
+  17   1          SCON = 0x50;    //8位数据,可变波特率
+  18   1          AUXR = 0x40;    //定时器1时钟为Fosc,即1T
+  19   1          AUXR &= 0xFE;   //串口1选择定时器1为波特率发生器
+  20   1          TMOD = 0x00;    //设定定时器1为16位自动重装方式
+  21   1          TL1 = BRT;      //设定定时初值
+  22   1          TH1 = BRT >> 8; //设定定时初值
+  23   1          ET1 = 0;        //禁止定时器1中断
+  24   1          TR1 = 1;        //启动定时器1
+  25   1          //BUSY = 0;
+  26   1          //P3M1 = 0x00;
+  27   1          //P3M0 = 0x03;
+  28   1          EA = 1;
+  29   1          ES = 1;
+  30   1      }
+  31          
+  32          void Uart1_Send(unsigned char Buf)
+  33          {
+  34   1          SBUF = Buf;
+  35   1          while (!TI)
+  36   1              ;
+  37   1          TI = 0;
+  38   1      }
+  39          
+  40          void Uart1_Send_Data(unsigned char *Buf)
+  41          {
+  42   1          while (*Buf)
+  43   1          {
+  44   2              Uart1_Send(*Buf++);
+  45   2          }
+  46   1      }
+  47          
+  48          int Uart1_Recv_NUM_AT(void)
+  49          {
+  50   1          char xdata *RecStr = Rx_Buffer_AT;
+  51   1          char xdata Num = 0;
+  52   1          int xdata Count = 0;
+  53   1      Loop:
+C51 COMPILER V9.59.0.0   USART                                                             09/18/2018 16:38:22 PAGE 2   
+
+  54   1          *RecStr = SBUF;
+  55   1          Count = 0;
+  56   1          RI = 0;
+  57   1          if (Num < 50) //数据包长度为36个字符,尝试连续接收36个字符
+  58   1          {
+  59   2              Num++;
+  60   2              RecStr++;
+  61   2              while (!RI)
+  62   2              {
+  63   3                  P50 = 0;
+  64   3                  Count++;
+  65   3                  if (Count > 200)
+  66   3                  {
+  67   4                      P50 = 1;
+  68   4                      return 0; //接收数据等待延迟，等待时间太久会导致CPU运算闲置，太短
+             -会出现"数据包被分割",默认count=130
+  69   4                  }
+  70   3              }
+  71   2              goto Loop;
+  72   2          }
+  73   1          P50 = 1;
+  74   1          return 1;
+  75   1      }
+  76          
+  77          int Uart1_Recv_NUM_Packet(void)
+  78          {
+  79   1          char xdata *RecStr = Rx_Buffer;
+  80   1          char xdata Num = 0;
+  81   1          int xdata Count = 0;
+  82   1      Loop:
+  83   1          *RecStr = SBUF;
+  84   1          Count = 0;
+  85   1          RI = 0;
+  86   1          if (Num < 35) //数据包长度为36个字符,尝试连续接收36个字符
+  87   1          {
+  88   2              Num++;
+  89   2              RecStr++;
+  90   2              while (!RI)
+  91   2              {
+  92   3                  P51 = 0;
+  93   3                  Count++;
+  94   3                  if (Count > 200)
+  95   3                  {
+  96   4                      P51 = 1;
+  97   4                      //Send_OK_Flag = False;
+  98   4                      return 0; //接收数据等待延迟，等待时间太久会导致CPU运算闲置，太短
+             -会出现"数据包被分割",默认count=130
+  99   4                  }
+ 100   3              }
+ 101   2              goto Loop;
+ 102   2          }
+ 103   1          P51 = 1;
+ 104   1          //Send_OK_Flag = False;
+ 105   1          return 1;
+ 106   1      }
+ 107          
+ 108          void Uart1_Recv_Deal(void)
+ 109          {
+ 110   1          int xdata Check;
+ 111   1          int xdata HCheck;
+ 112   1          int xdata LCheck;
+ 113   1          //提取数据包中的数据，并存储到本地变量中
+C51 COMPILER V9.59.0.0   USART                                                             09/18/2018 16:38:22 PAGE 3   
+
+ 114   1          DeviceID_01 = Rx_Buffer[0];
+ 115   1          DeviceID_02 = Rx_Buffer[1];
+ 116   1          DeviceID_03 = Rx_Buffer[2];
+ 117   1          DeviceID_04 = Rx_Buffer[3];
+ 118   1          DeviceMode = Rx_Buffer[4];
+ 119   1          Order = Rx_Buffer[5];
+ 120   1          DeviceStatus = Rx_Buffer[6];
+ 121   1          DeviceFlow_01 = Rx_Buffer[7];
+ 122   1          DeviceFlow_02 = Rx_Buffer[8];
+ 123   1          RechargeFlow_01 = Rx_Buffer[9];
+ 124   1          RechargeFlow_02 = Rx_Buffer[10];
+ 125   1          RechargeDay_01 = Rx_Buffer[11];
+ 126   1          RechargeDay_02 = Rx_Buffer[12];
+ 127   1          SurplusFlow_01 = Rx_Buffer[13];
+ 128   1          SurplusFlow_02 = Rx_Buffer[14];
+ 129   1          SurplusDay_01 = Rx_Buffer[15];
+ 130   1          SurplusDay_02 = Rx_Buffer[16];
+ 131   1          UsedFlow_01 = Rx_Buffer[17];
+ 132   1          UsedFlow_02 = Rx_Buffer[18];
+ 133   1          UsedDay_01 = Rx_Buffer[19];
+ 134   1          UsedDay_02 = Rx_Buffer[20];
+ 135   1          WaterTDS_01 = Rx_Buffer[21];
+ 136   1          WaterTDS_02 = Rx_Buffer[22];
+ 137   1          GPRSSignal = Rx_Buffer[23];
+ 138   1          ICCID1_01 = Rx_Buffer[24];
+ 139   1          ICCID1_02 = Rx_Buffer[25];
+ 140   1          ICCID2_01 = Rx_Buffer[26];
+ 141   1          ICCID2_02 = Rx_Buffer[27];
+ 142   1          ICCID3_01 = Rx_Buffer[28];
+ 143   1          ICCID3_02 = Rx_Buffer[29];
+ 144   1          ICCID4_01 = Rx_Buffer[30];
+ 145   1          ICCID4_02 = Rx_Buffer[31];
+ 146   1          ICCID5_01 = Rx_Buffer[32];
+ 147   1          ICCID5_02 = Rx_Buffer[33];
+ 148   1          Check_01 = Rx_Buffer[34];
+ 149   1          Check_02 = Rx_Buffer[35];
+ 150   1          //计算校验位
+ 151   1          Clear_Buf(Rx_Buffer);
+ 152   1          Check = DeviceID_01 + DeviceID_02 + DeviceID_03 + DeviceID_04 + DeviceMode + Order + DeviceStatus + De
+             -viceFlow_01 + DeviceFlow_02 + RechargeFlow_01 + RechargeFlow_02 + RechargeDay_01 + RechargeDay_02 + SurplusFlow_01 + Sur
+             -plusFlow_02 + SurplusDay_01 + SurplusDay_02 + UsedFlow_01 + UsedFlow_02 + UsedDay_01 + UsedDay_02 + WaterTDS_01 + WaterT
+             -DS_02 + GPRSSignal + ICCID1_01 + ICCID1_02 + ICCID2_01 + ICCID2_02 + ICCID3_01 + ICCID3_02 + ICCID4_01 + ICCID4_02 + ICC
+             -ID5_01 + ICCID5_02;
+ 153   1          HCheck = (short)(Check >> 8);   //提取校验位高八位
+ 154   1          LCheck = (short)(Check & 0xff); //提取校验位低八位
+ 155   1      
+ 156   1          if ((Check_01 != HCheck) && (Check_02 != LCheck)) //比较计算的校验位是否与数据包中校�
+             -�位相等
+ 157   1          {
+ 158   2              Order = COMMAND_ERRORUPLOAD;
+ 159   2          }
+ 160   1      }
+ 161          
+ 162          void Clear_Buf(char *Rx_Buf)
+ 163          {
+ 164   1          memset(Rx_Buf, 0x00, MAX_SIZE);
+ 165   1      }
+ 166          
+ 167          void Uart1_Isr(void) interrupt 4 using 1
+ 168          {
+ 169   1          //ES = 0;
+ 170   1          if (Send_OK_Flag == True)
+C51 COMPILER V9.59.0.0   USART                                                             09/18/2018 16:38:22 PAGE 4   
+
+ 171   1          {
+ 172   2              if (Uart1_Recv_NUM_Packet())
+ 173   2              {
+ 174   3                  //数据包长度正确则执行以下代码
+ 175   3                  Uart1_Recv_Deal();
+ 176   3              }
+ 177   2          }
+ 178   1          else
+ 179   1          {
+ 180   2              Uart1_Recv_NUM_AT();
+ 181   2          }
+ 182   1          //RI = 0; //接收并处理一次数据后把接收中断标志清除一下，拒绝响应在中断接
+             -收忙的时候发来的请求
+ 183   1          //ES = 1;
+ 184   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1006    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      12
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       3
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,457 @@
+C51 COMPILER V9.59.0.0   GPRS                                                              09/18/2018 16:38:22 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE GPRS
+OBJECT MODULE PLACED IN .\Objects\Gprs.obj
+COMPILER INVOKED BY: F:\Keil_v5_C51\C51\BIN\C51.EXE ..\MyLib\src\Gprs.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Protocol;..\M
+                    -ode\inc;..\MyLib\inc;..\Lib\inc;..\User) DEBUG OBJECTEXTEND PRINT(.\Listings\Gprs.lst) TABS(2) OBJECT(.\Objects\Gprs.obj
+                    -)
+
+line level    source
+
+   1          #include "STC8A8K32S4A12.h"
+   2          
+   3          #include "Gprs.h"
+   4          #include "PublicFunction.h"
+   5          #include "Usart.h"
+   6          #include "Order.h"
+   7          #include "Packet.h"
+   8          #include "Delay.h"
+   9          #include "EEPROM.h"
+  10          
+  11          #include "stdlib.h"
+  12          #include "string.h"
+  13          
+  14          int RECV_Return(char *Recv1, char *Recv2)
+  15          {
+  16   1        if ((Recv1 == 0) && (Recv2 == 0)) //如果Recv1，Recv2为NULL
+  17   1        {
+  18   2          return True;
+  19   2        }
+  20   1        if ((Recv1 != 0) && (Recv2 != 0)) //如果Recv1，Recv2不为NULL
+  21   1        {
+  22   2          if ((strstr(Rx_Buffer_AT, Recv1) && strstr(Rx_Buffer_AT, Recv2)) != NULL) //Rx_Buffer中是否同时包�
+             -��Recv1，Recv2
+  23   2            return True;
+  24   2          else
+  25   2            return False;
+  26   2        }
+  27   1        else if (Recv1 != 0) //如果Recv1不为NULL
+  28   1        {
+  29   2          if (strstr(Rx_Buffer_AT, Recv1) != NULL) //Rx_Buffer中是否包含Recv1
+  30   2            return True;
+  31   2          else
+  32   2            return False;
+  33   2        }
+  34   1        else //如果Recv1不为NULL
+  35   1        {
+  36   2          if (strstr(Rx_Buffer_AT, Recv2) != NULL) //Rx_Buffer中是否包含Recv2
+  37   2            return True;
+  38   2          else
+  39   2            return False;
+  40   2        }
+  41   1      }
+  42          
+  43          int RECV_Return_Special(char *Recv1, char *Recv2)
+  44          {
+  45   1        if ((Recv1 == 0) && (Recv2 == 0)) //如果Recv1，Recv2为NULL
+  46   1        {
+  47   2          return True;
+  48   2        }
+  49   1        if ((Recv1 != 0) && (Recv2 != 0)) //如果Recv1，Recv2不为NULL
+  50   1        {
+  51   2          if ((strstr(Rx_Buffer, Recv1) && strstr(Rx_Buffer, Recv2)) != NULL) //Rx_Buffer中是否同时包含Recv
+             -1，Recv2
+C51 COMPILER V9.59.0.0   GPRS                                                              09/18/2018 16:38:22 PAGE 2   
+
+  52   2            return True;
+  53   2          else
+  54   2            return False;
+  55   2        }
+  56   1        else if (Recv1 != 0) //如果Recv1不为NULL
+  57   1        {
+  58   2          if (strstr(Rx_Buffer, Recv1) != NULL) //Rx_Buffer中是否包含Recv1
+  59   2            return True;
+  60   2          else
+  61   2            return False;
+  62   2        }
+  63   1        else //如果Recv1不为NULL
+  64   1        {
+  65   2          if (strstr(Rx_Buffer, Recv2) != NULL) //Rx_Buffer中是否包含Recv2
+  66   2            return True;
+  67   2          else
+  68   2            return False;
+  69   2        }
+  70   1      }
+  71          
+  72          void GPRS_Init()
+  73          {
+  74   1        Uart1_Init(); //初始化串口1
+  75   1        P35 = 0;
+  76   1        Delay_S(1);
+  77   1        Delay_MS(200);
+  78   1        P35 = 1;
+  79   1      }
+  80          void GPRS_Mode(void)
+  81          {
+  82   1        Clear_Buf(Rx_Buffer_AT);         //清空接收缓冲区
+  83   1        Uart1_Send_Data("AT\n");         //串口发送 "AT"
+  84   1        Delay_MS(500);               //延时500毫秒（0.5秒）
+  85   1        while (RECV_Return("OK", NULL) == False) //检测接受缓冲区中是否包含"OK"，如果不包含执�
+             -��下列语句
+  86   1        {
+  87   2          Clear_Buf(Rx_Buffer_AT); //清空接收缓冲区
+  88   2          Uart1_Send_Data("AT\n"); //串口发送 "AT"
+  89   2          Delay_MS(500);       //延时500毫秒（0.5秒）
+  90   2                       //Uart2_Send_Data(Rx_Buffer);
+  91   2        }
+  92   1        Clear_Buf(Rx_Buffer_AT);           //清空接收缓冲区
+  93   1        Uart1_Send_Data("AT+CPIN?\r\n");       //串口发送 "AT+CPIN?"
+  94   1        Delay_MS(500);                 //延时500毫秒（0.5秒）
+  95   1        while (RECV_Return("+CPIN:", "OK") == False) //检测接受缓冲区中是否包含"+CPIN: READY"和"OK"�
+             -��如果不包含执行下列语句
+  96   1        {
+  97   2          Clear_Buf(Rx_Buffer_AT);     //清空接收缓冲区
+  98   2          Uart1_Send_Data("AT+CPIN?\r\n"); //串口发送 "AT+CPIN?"
+  99   2          Delay_MS(500);           //延时500毫秒（0.5秒）
+ 100   2        }
+ 101   1        Clear_Buf(Rx_Buffer_AT);           //清空接收缓冲区
+ 102   1        Uart1_Send_Data("AT+CREG?\r\n");       //串口发送 "AT+CREG?"
+ 103   1        Delay_MS(500);                 //延时500毫秒（0.5秒）
+ 104   1        while (RECV_Return("+CREG:", NULL) == False) //检测接受缓冲区中是否包含"CREG:"，如果不包
+             -含执行下列语句
+ 105   1        {
+ 106   2          Clear_Buf(Rx_Buffer_AT);     //清空接收缓冲区
+ 107   2          Uart1_Send_Data("AT+CREG?\r\n"); //串口发送 "AT+CREG?"
+ 108   2          Delay_MS(500);           //延时500毫秒（0.5秒）
+ 109   2        }
+ 110   1        //Clear_Buf(Rx_Buffer_AT); //清空接收缓冲区
+C51 COMPILER V9.59.0.0   GPRS                                                              09/18/2018 16:38:22 PAGE 3   
+
+ 111   1        //Clear_Buf(Rx_Buffer_AT); //清空接收缓冲区
+ 112   1        Clear_Buf(Rx_Buffer_AT);         //清空接收缓冲区
+ 113   1        Uart1_Send_Data("AT+CIPQSEND=0\r\n"); //串口发送 "AT+CREG?"
+ 114   1        Delay_MS(500);               //延时500毫秒（0.5秒）
+ 115   1        while (RECV_Return("OK", NULL) == False) //检测接受缓冲区中是否包含"CREG:"，如果不包含�
+             -��行下列语句
+ 116   1        {
+ 117   2          Clear_Buf(Rx_Buffer_AT);        //清空接收缓冲区
+ 118   2          Uart1_Send_Data("AT+CIPQSEND=0\r\n"); //串口发送 "AT+CREG?"
+ 119   2          Delay_MS(500);              //延时500毫秒（0.5秒）
+ 120   2        }
+ 121   1        Clear_Buf(Rx_Buffer_AT); //清空接收缓冲区
+ 122   1      }
+ 123          
+ 124          void GPRS_ConnectCreat(char *ServerIP, char *ServerPort)
+ 125          {
+ 126   1        Uart1_Send_Data("AT+CIPSTART="); //串口发送 "AT+CIPSTART="
+ 127   1        Uart1_Send(34);          //串口发送 "
+ 128   1        Uart1_Send_Data("TCP");      //串口发送 "TCP"
+ 129   1        Uart1_Send(34);          //串口发送 "
+ 130   1        Uart1_Send(44);          //串口发送 ,
+ 131   1        Uart1_Send(34);          //串口发送 "
+ 132   1        Uart1_Send_Data(ServerIP);     //串口发送 ServerIP
+ 133   1        Uart1_Send(34);          //串口发送 "
+ 134   1        Uart1_Send(44);          //串口发送 ,
+ 135   1        Uart1_Send(34);          //串口发送 "
+ 136   1        Uart1_Send_Data(ServerPort);   //串口发送 ServerPort
+ 137   1        Uart1_Send(34);          //串口发送 "
+ 138   1        Uart1_Send_Data("\r\n");     //串口发送 "\r\n"
+ 139   1        Delay_MS(5000);          //延时2000毫秒（2秒）
+ 140   1        while (1)            //检测接受缓冲区中是否包含"CONNECT OK"，如果不包含执行下列语句
+ 141   1        {
+ 142   2          if (RECV_Return("CONNECT OK", NULL) == True)
+ 143   2          {
+ 144   3            Clear_Buf(Rx_Buffer_AT);
+ 145   3            return;
+ 146   3          }
+ 147   2          if (RECV_Return("ALREADY CONNECT", NULL) == True)
+ 148   2          {
+ 149   3            Clear_Buf(Rx_Buffer_AT);
+ 150   3            return;
+ 151   3          }
+ 152   2          if (RECV_Return("CONNECT FAIL", NULL) == True)
+ 153   2          {
+ 154   3            Clear_Buf(Rx_Buffer_AT);     //清空接收缓冲区
+ 155   3            Uart1_Send_Data("AT+CIPSTART="); //串口发送 AT+CIPSTART="
+ 156   3            Uart1_Send(34);          //串口发送 "
+ 157   3            Uart1_Send_Data("TCP");      //串口发送 "TCP"
+ 158   3            Uart1_Send(34);          //串口发送 "
+ 159   3            Uart1_Send(44);          //串口发送 ,
+ 160   3            Uart1_Send(34);          //串口发送 "
+ 161   3            Uart1_Send_Data(ServerIP);     //串口发送 ServerIP
+ 162   3            Uart1_Send(34);          //串口发送 "
+ 163   3            Uart1_Send(44);          //串口发送 ,
+ 164   3            Uart1_Send(34);          //串口发送 "
+ 165   3            Uart1_Send_Data(ServerPort);   //串口发送 ServerPort
+ 166   3            Uart1_Send(34);          //串口发送 "
+ 167   3            Uart1_Send_Data("\r\n");     //串口发送 "\r\n"
+ 168   3                             //Delay_MS(5000);           //延时2000毫秒（2秒）
+ 169   3                             //Uart2_Send_Data(Rx_Buffer);
+ 170   3                             //return;
+ 171   3          }
+C51 COMPILER V9.59.0.0   GPRS                                                              09/18/2018 16:38:22 PAGE 4   
+
+ 172   2        }
+ 173   1        //Clear_Buf(Rx_Buffer_AT); //清空接收缓冲区
+ 174   1      }
+ 175          
+ 176          void GPRS_ConnectClose(void)
+ 177          {
+ 178   1        Clear_Buf(Rx_Buffer);
+ 179   1        Uart1_Send_Data("AT+CIPSHUT\r\n");
+ 180   1        Delay_MS(5000);
+ 181   1        while (RECV_Return("SHUT OK", NULL) == False)
+ 182   1        {
+ 183   2          Clear_Buf(Rx_Buffer);
+ 184   2          Uart1_Send_Data("AT+CIPSHUT\r\n");
+ 185   2          Delay_MS(5000);
+ 186   2        }
+ 187   1        Clear_Buf(Rx_Buffer);
+ 188   1      }
+ 189          
+ 190          void GPRS_SendData(char Command, char Mode, char Status)
+ 191          {
+ 192   1        int Send_Num = 0;
+ 193   1        int xdata HCheck;    //校验位高位
+ 194   1        int xdata LCheck;    //校验位低位
+ 195   1        Clear_Buf(Rx_Buffer_AT); //清空接收缓冲区
+ 196   1        Send_OK_Flag = False;
+ 197   1        GPRS_Signal();
+ 198   1        Uart1_Send_Data("AT+CIPSEND=36\r\n"); //串口发送 "AT+CIPSEND"
+ 199   1        //Delay_MS(2000);             //延时500毫秒（0.5秒）
+ 200   1        while (1) //检测接受缓冲区中是否包含">"，如果不包含执行下列语句
+ 201   1        {
+ 202   2          if (RECV_Return(">", NULL) == True)
+ 203   2          {
+ 204   3            goto SENDFLAG;
+ 205   3          }
+ 206   2          if ((RECV_Return("ERROR", NULL) == True) || (RECV_Return_Special("ERROR", NULL) == True))
+ 207   2          {
+ 208   3            GPRS_ConnectClose();
+ 209   3            GPRS_ConnectCreat(IP, Port);
+ 210   3            IapRead(EEPROM_DeviceMode);
+ 211   3            IapRead(EEPROM_DeviceStatus);
+ 212   3            GPRS_SendData(COMMAND_HEARTBEATPACKET, DeviceMode, DeviceStatus);
+ 213   3            Clear_Buf(Rx_Buffer_AT);
+ 214   3            Clear_Buf(Rx_Buffer);
+ 215   3          }
+ 216   2          //Clear_Buf(Rx_Buffer_AT);        //清空接收缓冲区
+ 217   2          //Uart1_Send_Data("AT+CIPSEND=36\r\n"); //串口发送 "AT+CIPSEND"
+ 218   2          //Delay_MS(2000);
+ 219   2        }
+ 220   1      SENDFLAG:
+ 221   1        Clear_Buf(Rx_Buffer_AT); //清空接收缓冲区
+ 222   1        Clear_Buf(Rx_Buffer);
+ 223   1        DeviceID_01 = IapRead(EEPROM_DeviceID);
+ 224   1        DeviceID_02 = IapRead(EEPROM_DeviceID + 1);
+ 225   1        DeviceID_03 = IapRead(EEPROM_DeviceID + 2);
+ 226   1        DeviceID_04 = IapRead(EEPROM_DeviceID + 3);
+ 227   1        Order = Command;     //发送命令
+ 228   1        DeviceMode = Mode;   //发送设备模式
+ 229   1        DeviceStatus = Status; //发送设备状态
+ 230   1        Valve_to_Flow();     //将脉冲转换为流量
+ 231   1        ICCID1_01 = IapRead(EEPROM_ICCID);
+ 232   1        ICCID1_02 = IapRead(EEPROM_ICCID + 1);
+ 233   1        ICCID2_01 = IapRead(EEPROM_ICCID + 2);
+C51 COMPILER V9.59.0.0   GPRS                                                              09/18/2018 16:38:22 PAGE 5   
+
+ 234   1        ICCID2_02 = IapRead(EEPROM_ICCID + 3);
+ 235   1        ICCID3_01 = IapRead(EEPROM_ICCID + 4);
+ 236   1        ICCID3_02 = IapRead(EEPROM_ICCID + 5);
+ 237   1        ICCID4_01 = IapRead(EEPROM_ICCID + 6);
+ 238   1        ICCID4_02 = IapRead(EEPROM_ICCID + 7);
+ 239   1        ICCID5_01 = IapRead(EEPROM_ICCID + 8);
+ 240   1        ICCID5_02 = IapRead(EEPROM_ICCID + 9);
+ 241   1        Get_Check(&HCheck, &LCheck); //计算校验位
+ 242   1        Check_01 = HCheck;       //保存校验位高位
+ 243   1        Check_02 = LCheck;       //保存校验位低位
+ 244   1        Uart1_Send(DeviceID_01);   //串口发送 设备ID_01
+ 245   1        Uart1_Send(DeviceID_02);   //串口发送 设备ID_02
+ 246   1        Uart1_Send(DeviceID_03);   //串口发送 设备ID_03
+ 247   1        Uart1_Send(DeviceID_04);   //串口发送 设备ID_04
+ 248   1        Uart1_Send(DeviceMode);    //串口发送 设备计费模式
+ 249   1        Uart1_Send(Order);       //串口发送 命令
+ 250   1        Uart1_Send(DeviceStatus); //串口发送 设备状态
+ 251   1        Uart1_Send(DeviceFlow_01);   //串口发送 本次消费流量_01
+ 252   1        Uart1_Send(DeviceFlow_02);   //串口发送 本次消费流量_02
+ 253   1        Uart1_Send(RechargeFlow_01); //串口发送 充值流量_01
+ 254   1        Uart1_Send(RechargeFlow_02); //串口发送 充值流量_02
+ 255   1        Uart1_Send(RechargeDay_01);  //串口发送 充值天数_01
+ 256   1        Uart1_Send(RechargeDay_02);  //串口发送 充值天数_02
+ 257   1        Uart1_Send(SurplusFlow_01);  //串口发送 剩余流量_01
+ 258   1        Uart1_Send(SurplusFlow_02);  //串口发送 剩余流量_02
+ 259   1        Uart1_Send(SurplusDay_01);   //串口发送 剩余天数_01
+ 260   1        Uart1_Send(SurplusDay_02);   //串口发送 剩余天数_02
+ 261   1        Uart1_Send(UsedFlow_01);   //串口发送 已使用流量_01
+ 262   1        Uart1_Send(UsedFlow_02);   //串口发送 已使用流量_02
+ 263   1        Uart1_Send(UsedDay_01);    //串口发送 已使用天数_01
+ 264   1        Uart1_Send(UsedDay_02);    //串口发送 已使用天数_02
+ 265   1        Uart1_Send(WaterTDS_01);   //串口发送 纯水TDS值_01
+ 266   1        Uart1_Send(WaterTDS_02);   //串口发送 纯水TDS值_02
+ 267   1        Uart1_Send(GPRSSignal);    //串口发送 GPRS信号强度
+ 268   1        Uart1_Send(ICCID1_01);     //串口发送 ICCID1_01
+ 269   1        Uart1_Send(ICCID1_02);     //串口发送 ICCID1_02
+ 270   1        Uart1_Send(ICCID2_01);     //串口发送 ICCID2_01
+ 271   1        Uart1_Send(ICCID2_02);     //串口发送 ICCID2_02
+ 272   1        Uart1_Send(ICCID3_01);     //串口发送 ICCID3_01
+ 273   1        Uart1_Send(ICCID3_02);     //串口发送 ICCID3_02
+ 274   1        Uart1_Send(ICCID4_01);     //串口发送 ICCID4_01
+ 275   1        Uart1_Send(ICCID4_02);     //串口发送 ICCID4_02
+ 276   1        Uart1_Send(ICCID5_01);     //串口发送 ICCID5_01
+ 277   1        Uart1_Send(ICCID5_02);     //串口发送 ICCID5_02
+ 278   1        Uart1_Send(Check_01);    //串口发送 校验位_01
+ 279   1        Uart1_Send(Check_02);    //串口发送 校验位_02
+ 280   1        Order = COMMAND_HEARTBEATPACKET;
+ 281   1        //Uart1_Send(0x1A); //串口发送 0x1A
+ 282   1        while (1)
+ 283   1        {
+ 284   2          if (RECV_Return("OK", NULL) == True) //检测接受缓冲区中是否包含"SEND OK"，如果不包含�
+             -�行下列语句
+ 285   2          {
+ 286   3            Send_OK_Flag = True;
+ 287   3            return;
+ 288   3          }
+ 289   2        }
+ 290   1      }
+ 291          void GPRS_SendHeartPacket(void)
+ 292          {
+ 293   1        int Send_Num = 0;
+ 294   1        Clear_Buf(Rx_Buffer_AT);
+C51 COMPILER V9.59.0.0   GPRS                                                              09/18/2018 16:38:22 PAGE 6   
+
+ 295   1        Send_OK_Flag = False;
+ 296   1        DeviceID_01 = IapRead(EEPROM_DeviceID);
+ 297   1        DeviceID_02 = IapRead(EEPROM_DeviceID + 1);
+ 298   1        DeviceID_03 = IapRead(EEPROM_DeviceID + 2);
+ 299   1        DeviceID_04 = IapRead(EEPROM_DeviceID + 3);
+ 300   1        Uart1_Send_Data("AT+CIPSEND=4\r\n"); //串口发送 "AT+CIPSEND"
+ 301   1        //Delay_MS(2000);             //延时500毫秒（0.5秒）
+ 302   1        while (1) //检测接受缓冲区中是否包含">"，如果不包含执行下列语句
+ 303   1        {
+ 304   2          if (RECV_Return(">", NULL) == True)
+ 305   2          {
+ 306   3            goto SENDHEARTFLAG;
+ 307   3          }
+ 308   2          if ((RECV_Return("ERROR", NULL) == True) || (RECV_Return_Special("ERROR", NULL) == True))
+ 309   2          {
+ 310   3            GPRS_ConnectClose();
+ 311   3            GPRS_ConnectCreat(IP, Port);
+ 312   3            IapRead(EEPROM_DeviceMode);
+ 313   3            IapRead(EEPROM_DeviceStatus);
+ 314   3            GPRS_SendData(COMMAND_HEARTBEATPACKET, DeviceMode, DeviceStatus);
+ 315   3            Order = COMMAND_HEARTBEATPACKET;
+ 316   3            Clear_Buf(Rx_Buffer_AT);
+ 317   3            Clear_Buf(Rx_Buffer);
+ 318   3          }
+ 319   2        }
+ 320   1      SENDHEARTFLAG:
+ 321   1        Clear_Buf(Rx_Buffer_AT);
+ 322   1        Uart1_Send(DeviceID_01); //串口发送 心跳命令
+ 323   1        Uart1_Send(DeviceID_02); //串口发送 0x00
+ 324   1        Uart1_Send(DeviceID_03); //串口发送 0x00
+ 325   1        Uart1_Send(DeviceID_04); //串口发送 0x00
+ 326   1        //Uart1_Send(0x1A); //串口发送 0x1A
+ 327   1        while (1)
+ 328   1        {
+ 329   2          if (RECV_Return("OK", NULL) == True) //检测接受缓冲区中是否包含"SEND OK"，如果不包含�
+             -�行下列语句
+ 330   2          {
+ 331   3            Send_OK_Flag = True;
+ 332   3            return;
+ 333   3          }
+ 334   2        }
+ 335   1      }
+ 336          
+ 337          void GPRS_Signal(void)
+ 338          {
+ 339   1        char Signal[3];
+ 340   1        Clear_Buf(Rx_Buffer_AT);
+ 341   1        Uart1_Send_Data("AT+CSQ\r\n");
+ 342   1        Delay_MS(500);
+ 343   1        //Uart2_Send_Data(Rx_Buffer);
+ 344   1        while (RECV_Return("+CSQ: ", NULL) == False)
+ 345   1        {
+ 346   2          Clear_Buf(Rx_Buffer_AT);
+ 347   2          Uart1_Send_Data("AT+CSQ\r\n");
+ 348   2          Delay_MS(500);
+ 349   2          //Uart2_Send_Data(Rx_Buffer);
+ 350   2        }
+ 351   1        GPRSSignal = atoi(strncpy(Signal, strchr(Rx_Buffer_AT, ' '), 3));
+ 352   1        IapErase(EEPROM_GPRSSignal);
+ 353   1        IapProgram(EEPROM_GPRSSignal, GPRSSignal);
+ 354   1      }
+ 355          
+C51 COMPILER V9.59.0.0   GPRS                                                              09/18/2018 16:38:22 PAGE 7   
+
+ 356          void GPRS_ICCID(void)
+ 357          {
+ 358   1        unsigned char Signal[21] = {0x00};
+ 359   1        char Temp[3] = {0x00, 0x00, 0x00};
+ 360   1        Clear_Buf(Rx_Buffer_AT);
+ 361   1        Uart1_Send_Data("AT+ICCID\r\n");
+ 362   1        Delay_MS(500);
+ 363   1        while (RECV_Return("+ICCID: ", NULL) == False)
+ 364   1        {
+ 365   2          Clear_Buf(Rx_Buffer_AT);
+ 366   2          Uart1_Send_Data("AT+ICCID\r\n");
+ 367   2          Delay_MS(500);
+ 368   2        }
+ 369   1        strncpy(Signal, strchr(Rx_Buffer_AT, ' ') + 1, 20);
+ 370   1        strncpy(Temp, Signal + 0, 2);
+ 371   1        ICCID1_01 = Hex_to_Int(Temp);
+ 372   1        IapErase(EEPROM_ICCID);
+ 373   1        IapProgram(EEPROM_ICCID, ICCID1_01);
+ 374   1      
+ 375   1        strncpy(Temp, Signal + 2, 2);
+ 376   1        ICCID1_02 = Hex_to_Int(Temp);
+ 377   1        IapProgram(EEPROM_ICCID + 1, ICCID1_02);
+ 378   1      
+ 379   1        strncpy(Temp, Signal + 4, 2);
+ 380   1        ICCID2_01 = Hex_to_Int(Temp);
+ 381   1        IapProgram(EEPROM_ICCID + 2, ICCID2_01);
+ 382   1      
+ 383   1        strncpy(Temp, Signal + 6, 2);
+ 384   1        ICCID2_02 = Hex_to_Int(Temp);
+ 385   1        IapProgram(EEPROM_ICCID + 3, ICCID2_02);
+ 386   1      
+ 387   1        strncpy(Temp, Signal + 8, 2);
+ 388   1        ICCID3_01 = Hex_to_Int(Temp);
+ 389   1        IapProgram(EEPROM_ICCID + 4, ICCID3_01);
+ 390   1      
+ 391   1        strncpy(Temp, Signal + 10, 2);
+ 392   1        ICCID3_02 = Hex_to_Int(Temp);
+ 393   1        IapProgram(EEPROM_ICCID + 5, ICCID3_02);
+ 394   1      
+ 395   1        strncpy(Temp, Signal + 12, 2);
+ 396   1        ICCID4_01 = Hex_to_Int(Temp);
+ 397   1        IapProgram(EEPROM_ICCID + 6, ICCID4_01);
+ 398   1      
+ 399   1        strncpy(Temp, Signal + 14, 2);
+ 400   1        ICCID4_02 = Hex_to_Int(Temp);
+ 401   1        IapProgram(EEPROM_ICCID + 7, ICCID4_02);
+ 402   1      
+ 403   1        strncpy(Temp, Signal + 16, 2);
+ 404   1        ICCID5_01 = Hex_to_Int(Temp);
+ 405   1        IapProgram(EEPROM_ICCID + 8, ICCID5_01);
+ 406   1      
+ 407   1        strncpy(Temp, Signal + 18, 2);
+ 408   1        ICCID5_02 = Hex_to_Int(Temp);
+ 409   1        IapProgram(EEPROM_ICCID + 9, ICCID5_02);
+ 410   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2550    ----
+   CONSTANT SIZE    =    263    ----
+   XDATA SIZE       =   ----       4
+   PDATA SIZE       =   ----    ----
+C51 COMPILER V9.59.0.0   GPRS                                                              09/18/2018 16:38:22 PAGE 8   
+
+   DATA SIZE        =   ----      52
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

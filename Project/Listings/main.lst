@@ -1,0 +1,235 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              09/18/2018 16:38:24 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: F:\Keil_v5_C51\C51\BIN\C51.EXE ..\User\main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Protocol;..\Mode\i
+                    -nc;..\MyLib\inc;..\Lib\inc;..\User) DEBUG OBJECTEXTEND PRINT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include "STC8A8K32S4A12.h"
+   2          
+   3          #include "PublicMode.h"
+   4          #include "PrivateMode.h"
+   5          #include "PublicFunction.h"
+   6          
+   7          #include "Packet.h"
+   8          #include "Order.h"
+   9          
+  10          #include "Usart.h"
+  11          #include "Gprs.h"
+  12          #include "Timer.h"
+  13          #include "IODeal.h"
+  14          #include "Delay.h"
+  15          #include "EEPROM.h"
+  16          
+  17          #include "stdlib.h"
+  18          #include "string.h"
+  19          
+  20          int main(void)
+  21          {
+  22   1          P51 = 0;
+  23   1          GPRS_Init(); //初始化GPRS模块
+  24   1          Delay_S(5);
+  25   1          P51 = 1;
+  26   1      
+  27   1          Valve_Init();                                      //初始化脉冲阀
+  28   1          TIM0_Init();                                       //初始化脉冲计数器
+  29   1          TIM2_Init();                                       //初始化开始用水计时器
+  30   1          TIM3_Init();                                       //初始化结束用水计时器
+  31   1          TIM4_Init();                                       //初始化心跳包计时器
+  32   1          OpenDeviceCount = IapRead(EEPROM_OpenDeviceCount); //读取开机次数
+  33   1          if (OpenDeviceCount == 0x00)
+  34   1          {
+  35   2              OpenDeviceCount++;
+  36   2              IapErase(EEPROM_OpenDeviceCount);
+  37   2              IapProgram(EEPROM_OpenDeviceCount, OpenDeviceCount);
+  38   2              Recovery_PacketData();
+  39   2              P50 = 0;
+  40   2              Delay_MS(500);
+  41   2              P50 = 1;
+  42   2          }
+  43   1          else
+  44   1          {
+  45   2              OpenDeviceCount++;
+  46   2              IapErase(EEPROM_OpenDeviceCount);
+  47   2              IapProgram(EEPROM_OpenDeviceCount, OpenDeviceCount);
+  48   2              DeviceMode = IapRead(EEPROM_DeviceMode);
+  49   2              DeviceStatus = IapRead(EEPROM_DeviceStatus);
+  50   2              ValveCountDown_H = IapRead(EEPROM_Vavle);
+  51   2              ValveCountDown_M1 = IapRead(EEPROM_Vavle + 1);
+  52   2              ValveCountDown_M2 = IapRead(EEPROM_Vavle + 2);
+  53   2              ValveCountDown_L = IapRead(EEPROM_Vavle + 3);
+  54   2              ValveCountDown = Get_HMLvalue(ValveCountDown_H, ValveCountDown_M1, ValveCountDown_M2, ValveCountDo
+C51 COMPILER V9.59.0.0   MAIN                                                              09/18/2018 16:38:24 PAGE 2   
+
+             -wn_L);
+  55   2      
+  56   2              ValveAll_H = IapRead(EEPROM_VavleALL);
+  57   2              ValveAll_M1 = IapRead(EEPROM_VavleALL + 1);
+  58   2              ValveAll_M2 = IapRead(EEPROM_VavleALL + 2);
+  59   2              ValveAll_L = IapRead(EEPROM_VavleALL + 3);
+  60   2              P50 = 0;
+  61   2              Delay_MS(500);
+  62   2              P50 = 1;
+  63   2          }
+  64   1          GPRS_Mode();
+  65   1          GPRS_ICCID();
+  66   1          GPRS_ConnectClose();
+  67   1          GPRS_ConnectCreat(IP, Port);
+  68   1          while (1)
+  69   1          {
+  70   2              DeviceID_01 = IapRead(EEPROM_DeviceID);
+  71   2              DeviceID_02 = IapRead(EEPROM_DeviceID + 1);
+  72   2              DeviceID_03 = IapRead(EEPROM_DeviceID + 2);
+  73   2              DeviceID_04 = IapRead(EEPROM_DeviceID + 3);
+  74   2              if ((DeviceID_01 == 0x00) && (DeviceID_02 == 0x00) && (DeviceID_03 == 0x00) && (DeviceID_04 == 0x0
+             -0))
+  75   2              {
+  76   3                  DeviceStatus = STATUS_WAITACTIVATION;
+  77   3                  IapErase(EEPROM_DeviceStatus);
+  78   3                  IapProgram(EEPROM_DeviceStatus, STATUS_WAITACTIVATION);
+  79   3                  GPRS_SendData(COMMAND_IDCODE, DeviceMode, DeviceStatus);
+  80   3                  while (1)
+  81   3                  {
+  82   4                      if (Order == COMMAND_IDCODE) //ID编码
+  83   4                      {
+  84   5                          DeviceMode = IapRead(EEPROM_DeviceMode);
+  85   5                          DeviceStatus = IapRead(EEPROM_DeviceStatus);
+  86   5                          IapErase(EEPROM_DeviceID);
+  87   5                          IapProgram(EEPROM_DeviceID, DeviceID_01);
+  88   5                          IapProgram(EEPROM_DeviceID + 1, DeviceID_02);
+  89   5                          IapProgram(EEPROM_DeviceID + 2, DeviceID_03);
+  90   5                          IapProgram(EEPROM_DeviceID + 3, DeviceID_04);
+  91   5                          GPRS_SendData(COMMAND_RECV_IDCODE, DeviceMode, DeviceStatus);
+  92   5                          Order = COMMAND_HEARTBEATPACKET;
+  93   5                          goto MODESWITCH;
+  94   5                      }
+  95   4                      if ((RECV_Return("CLOSED", NULL) == True) || (RECV_Return_Special("CLOSED", NULL) == True)
+             -)
+  96   4                      {
+  97   5                          GPRS_ConnectClose();
+  98   5                          GPRS_ConnectCreat(IP, Port);
+  99   5                          DeviceStatus = STATUS_WAITACTIVATION;
+ 100   5                          IapErase(EEPROM_DeviceStatus);
+ 101   5                          IapProgram(EEPROM_DeviceStatus, STATUS_WAITACTIVATION);
+ 102   5                          GPRS_SendData(COMMAND_IDCODE, DeviceMode, DeviceStatus);
+ 103   5                          Send_OK_Flag = True;
+ 104   5                          Order = COMMAND_HEARTBEATPACKET;
+ 105   5                          Clear_Buf(Rx_Buffer_AT);
+ 106   5                          Clear_Buf(Rx_Buffer);
+ 107   5                      }
+ 108   4                      if ((RECV_Return("PDP:", NULL) == True) || (RECV_Return_Special("PDP:", NULL) == True))
+ 109   4                      {
+ 110   5                          GPRS_ConnectClose();
+ 111   5                          GPRS_ConnectCreat(IP, Port);
+ 112   5                          DeviceStatus = STATUS_WAITACTIVATION;
+ 113   5                          IapErase(EEPROM_DeviceStatus);
+C51 COMPILER V9.59.0.0   MAIN                                                              09/18/2018 16:38:24 PAGE 3   
+
+ 114   5                          IapProgram(EEPROM_DeviceStatus, STATUS_WAITACTIVATION);
+ 115   5                          GPRS_SendData(COMMAND_IDCODE, DeviceMode, DeviceStatus);
+ 116   5                          Send_OK_Flag = True;
+ 117   5                          Order = COMMAND_HEARTBEATPACKET;
+ 118   5                          Clear_Buf(Rx_Buffer_AT);
+ 119   5                          Clear_Buf(Rx_Buffer);
+ 120   5                      }
+ 121   4                      if (ICCIDBool == True)
+ 122   4                      {
+ 123   5                          ICCIDBool = False;
+ 124   5                          GPRS_SendData(COMMAND_IDCODE, DeviceMode, DeviceStatus);
+ 125   5                      }
+ 126   4                  }
+ 127   3              }
+ 128   2              else
+ 129   2              {
+ 130   3                  while (1)
+ 131   3                  {
+ 132   4                      if (Order != COMMAND_MODESWITCH)
+ 133   4                      {
+ 134   5                          GPRS_SendData(COMMAND_HEARTBEATPACKET, DeviceMode, DeviceStatus);
+ 135   5                          goto MODESWITCH;
+ 136   5                      }
+ 137   4                      if ((RECV_Return("CLOSED", NULL) == True) || (RECV_Return_Special("CLOSED", NULL) == True)
+             -)
+ 138   4                      {
+ 139   5                          GPRS_ConnectClose();
+ 140   5                          GPRS_ConnectCreat(IP, Port);
+ 141   5                          IapRead(EEPROM_DeviceMode);
+ 142   5                          IapRead(EEPROM_DeviceStatus);
+ 143   5                          GPRS_SendData(COMMAND_HEARTBEATPACKET, DeviceMode, DeviceStatus);
+ 144   5                          Send_OK_Flag = True;
+ 145   5                          Order = COMMAND_HEARTBEATPACKET;
+ 146   5                          Clear_Buf(Rx_Buffer_AT);
+ 147   5                          Clear_Buf(Rx_Buffer);
+ 148   5                      }
+ 149   4                      if ((RECV_Return("PDP:", NULL) == True) || (RECV_Return_Special("PDP:", NULL) == True))
+ 150   4                      {
+ 151   5                          GPRS_ConnectClose();
+ 152   5                          GPRS_ConnectCreat(IP, Port);
+ 153   5                          IapRead(EEPROM_DeviceMode);
+ 154   5                          IapRead(EEPROM_DeviceStatus);
+ 155   5                          GPRS_SendData(COMMAND_HEARTBEATPACKET, DeviceMode, DeviceStatus);
+ 156   5                          Send_OK_Flag = True;
+ 157   5                          Order = COMMAND_HEARTBEATPACKET;
+ 158   5                          Clear_Buf(Rx_Buffer_AT);
+ 159   5                          Clear_Buf(Rx_Buffer);
+ 160   5                      }
+ 161   4                      goto MODESWITCH;
+ 162   4                  }
+ 163   3              }
+ 164   2          MODESWITCH:
+ 165   2              Order = COMMAND_HEARTBEATPACKET;
+ 166   2              if (IapRead(EEPROM_DeviceMode) == MODE_PUBLIC)
+ 167   2              {
+ 168   3                  PublicMode_Start();
+ 169   3              }
+ 170   2              else if (IapRead(EEPROM_DeviceMode) == MODE_FLOW)
+ 171   2              {
+ 172   3                  PrivateMode_Start();
+ 173   3              }
+ 174   2              if ((RECV_Return("CLOSED", NULL) == True) || (RECV_Return_Special("CLOSED", NULL) == True))
+C51 COMPILER V9.59.0.0   MAIN                                                              09/18/2018 16:38:24 PAGE 4   
+
+ 175   2              {
+ 176   3                  GPRS_ConnectClose();
+ 177   3                  GPRS_ConnectCreat(IP, Port);
+ 178   3                  IapRead(EEPROM_DeviceMode);
+ 179   3                  IapRead(EEPROM_DeviceStatus);
+ 180   3                  GPRS_SendData(COMMAND_HEARTBEATPACKET, DeviceMode, DeviceStatus);
+ 181   3                  Send_OK_Flag = True;
+ 182   3                  Order = COMMAND_HEARTBEATPACKET;
+ 183   3                  Clear_Buf(Rx_Buffer_AT);
+ 184   3                  Clear_Buf(Rx_Buffer);
+ 185   3                  goto MODESWITCH;
+ 186   3              }
+ 187   2              if ((RECV_Return("PDP:", NULL) == True) || (RECV_Return_Special("PDP:", NULL) == True))
+ 188   2              {
+ 189   3                  GPRS_ConnectClose();
+ 190   3                  GPRS_ConnectCreat(IP, Port);
+ 191   3                  IapRead(EEPROM_DeviceMode);
+ 192   3                  IapRead(EEPROM_DeviceStatus);
+ 193   3                  GPRS_SendData(COMMAND_HEARTBEATPACKET, DeviceMode, DeviceStatus);
+ 194   3                  Send_OK_Flag = True;
+ 195   3                  Order = COMMAND_HEARTBEATPACKET;
+ 196   3                  Clear_Buf(Rx_Buffer_AT);
+ 197   3                  Clear_Buf(Rx_Buffer);
+ 198   3                  goto MODESWITCH;
+ 199   3              }
+ 200   2          }
+ 201   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1300    ----
+   CONSTANT SIZE    =     36    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

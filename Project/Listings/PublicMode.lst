@@ -1,0 +1,280 @@
+C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/18/2018 16:38:22 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE PUBLICMODE
+OBJECT MODULE PLACED IN .\Objects\PublicMode.obj
+COMPILER INVOKED BY: F:\Keil_v5_C51\C51\BIN\C51.EXE ..\Mode\src\PublicMode.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Protocol
+                    -;..\Mode\inc;..\MyLib\inc;..\Lib\inc;..\User) DEBUG OBJECTEXTEND PRINT(.\Listings\PublicMode.lst) TABS(2) OBJECT(.\Objec
+                    -ts\PublicMode.obj)
+
+line level    source
+
+   1          #include "STC8A8K32S4A12.h"
+   2          
+   3          #include "PublicMode.h"
+   4          #include "PrivateMode.h"
+   5          #include "PublicFunction.h"
+   6          #include "Packet.h"
+   7          #include "Order.h"
+   8          #include "Usart.h"
+   9          #include "Gprs.h"
+  10          #include "EEPROM.h"
+  11          #include "Delay.h"
+  12          
+  13          #include "string.h"
+  14          #include "ctype.h"
+  15          
+  16          void PublicMode_Start(void)
+  17          {
+  18   1          int ValveFlag = OFF;
+  19   1          Valve_Switch(OFF);
+  20   1          IapErase(EEPROM_DeviceMode);
+  21   1          IapProgram(EEPROM_DeviceMode, MODE_PUBLIC);
+  22   1          AUXR &= ~0x10;  //用户开始用水定时器关闭
+  23   1          T4T3M &= ~0x08; //用户结束用水定时器开启
+  24   1      
+  25   1          while (1)
+  26   1          {
+  27   2              //Uart1_Send_Data("AT\r\n");
+  28   2              if (HeartPacketBool == True)
+  29   2              {
+  30   3                  GPRS_SendHeartPacket();
+  31   3                  HeartPacketBool = False;
+  32   3                  Send_OK_Flag = True;
+  33   3              }
+  34   2              if ((IapRead(EEPROM_DeviceStatus)) == STATUS_WAITACTIVATION)
+  35   2              {
+  36   3                  if (Order == COMMAND_SYSTEMINIT)
+  37   3                  {
+  38   4                      Valve_Switch(OFF);
+  39   4                      SystemInit_PacketData();
+  40   4                      GPRS_SendData(COMMAND_RECV_SYSTEMINIT, DeviceMode, DeviceStatus); //向服务器上传模�
+             -��切换命令回执
+  41   4                      Order = COMMAND_MODESWITCH;
+  42   4                      return;
+  43   4                  }
+  44   3                  else if (Order == COMMAND_ERRORUPLOAD)
+  45   3                  {
+  46   4                      GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus);
+  47   4                  }
+  48   3              }
+  49   2              else
+  50   2              {
+  51   3                  if (Order == COMMAND_ERRORUPLOAD)
+  52   3                  {
+C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/18/2018 16:38:22 PAGE 2   
+
+  53   4                      GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus); //向服务器上传错误�
+             -�令
+  54   4                  }
+  55   3                  else if (Order == COMMAND_DEVICECLOSE) //关机命令
+  56   3                  {
+  57   4                      Valve_Switch(OFF);
+  58   4                      DeviceStatus = STATUS_CLOSEDEVICE;
+  59   4                      IapErase(EEPROM_DeviceStatus);
+  60   4                      IapProgram(EEPROM_DeviceStatus, STATUS_CLOSEDEVICE);
+  61   4                      GPRS_SendData(COMMAND_RECV_DEVICECLOSE, MODE_PUBLIC, STATUS_CLOSEDEVICE); //向服务器�
+             -�传关机命令回执
+  62   4                      Order = COMMAND_HEARTBEATPACKET;
+  63   4                  }
+  64   3                  else if (Order == COMMAND_DEVICEOPEN) //开机命令
+  65   3                  {
+  66   4                      Valve_Switch(OFF);
+  67   4                      DeviceStatus = STATUS_OPENDEVICE;
+  68   4                      IapErase(EEPROM_DeviceStatus);
+  69   4                      IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
+  70   4                      GPRS_SendData(COMMAND_RECV_DEVICEOPEN, MODE_PUBLIC, STATUS_OPENDEVICE); //向服务器上�
+             -��开机命令回执
+  71   4                      Order = COMMAND_HEARTBEATPACKET;
+  72   4                  }
+  73   3                  else if (Order == COMMAND_SYSTEMINIT) //模式切换
+  74   3                  {
+  75   4                      Valve_Switch(OFF);
+  76   4                      SystemInit_PacketData();
+  77   4                      GPRS_SendData(COMMAND_RECV_SYSTEMINIT, DeviceMode, DeviceStatus); //向服务器上传模�
+             -��切换命令回执
+  78   4                      Order = COMMAND_MODESWITCH;
+  79   4                      return;
+  80   4                  }
+  81   3                  else if (Order == COMMAND_RECOVERY) //恢复出厂设置
+  82   3                  {
+  83   4                      Valve_Switch(OFF);
+  84   4                      Recovery_PacketData();
+  85   4                      GPRS_SendData(COMMAND_RECV_RECOVERY, DeviceMode, STATUS_RECOVERY); //向服务器上传恢
+             -复出厂设置回执
+  86   4                      Order = COMMAND_HEARTBEATPACKET;
+  87   4                      return;
+  88   4                  }
+  89   3                  else if (Order == COMMAND_DEVICEINFOR) //查询设备信息
+  90   3                  {
+  91   4                      DeviceMode = IapRead(EEPROM_DeviceMode);
+  92   4                      DeviceStatus = IapRead(EEPROM_DeviceStatus);
+  93   4                      GPRS_SendData(COMMAND_RECV_DEVICEINFOR, DeviceMode, DeviceStatus); //向服务器上传模
+             -式切换回执
+  94   4                      Order = COMMAND_HEARTBEATPACKET;
+  95   4                  }
+  96   3                  else if (Order == COMMAND_DEVICELOCK) //机器锁定命令
+  97   3                  {
+  98   4                      Valve_Switch(OFF);
+  99   4                      if (Lock == ON)
+ 100   4                      {
+ 101   5                          DeviceStatus = STATUS_LOCKDEVICE; //接收机器锁定命令，关闭脉冲阀
+ 102   5                          IapErase(EEPROM_DeviceStatus);
+ 103   5                          IapProgram(EEPROM_DeviceStatus, STATUS_LOCKDEVICE);
+ 104   5                          Lock = OFF;
+ 105   5                      }
+ 106   4                      else if (Lock == OFF)
+ 107   4                      {
+ 108   5                          DeviceStatus = STATUS_OPENDEVICE;
+C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/18/2018 16:38:22 PAGE 3   
+
+ 109   5                          IapErase(EEPROM_DeviceStatus);
+ 110   5                          IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
+ 111   5                          Lock = ON;
+ 112   5                      }
+ 113   4                      GPRS_SendData(COMMAND_RECV_DEVICELOCK, MODE_PUBLIC, DeviceStatus); //向服务器上传机
+             -器锁定回执
+ 114   4                      Order = COMMAND_HEARTBEATPACKET;
+ 115   4                  }
+ 116   3                  else if (Order == COMMAND_USEWATER) //取水命令
+ 117   3                  {
+ 118   4                      DeviceStatus = STATUS_OPENDEVICE;
+ 119   4                      IapErase(EEPROM_DeviceStatus);
+ 120   4                      IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
+ 121   4                      ValveCountDown = Flow_to_Valve_PublicMode();
+ 122   4      
+ 123   4                      Valve_Switch(ON);
+ 124   4                      ValveCount = 0;
+ 125   4                      GPRS_SendData(COMMAND_RECV_USEWATER, MODE_PUBLIC, STATUS_OPENDEVICE); //向服务器上传
+             -取水命令回执
+ 126   4                      PollTimer_Stop = 0;
+ 127   4                      PollTimer_Start_Stop = 0;
+ 128   4                      T4T3M |= 0x08; //用户结束用水定时器开启
+ 129   4                      while (1)
+ 130   4                      {
+ 131   5                          if (Order == COMMAND_STOPWATER)
+ 132   5                          {
+ 133   6                              Valve_Switch(OFF);
+ 134   6                              //ValveFlag = ON;
+ 135   6                              GPRS_SendData(COMMAND_RECV_STOPWATER, MODE_PUBLIC, STATUS_OPENDEVICE); //向服务
+             -器上传取水命令回执
+ 136   6                              //if (DeviceFlow_01 != 0x00 && DeviceFlow_02 != 0x00)
+ 137   6                              //GPRS_SendData(COMMAND_USEWATERUPLOAD, MODE_PUBLIC, STATUS_OPENDEVICE); //向服�
+             -��器上传取水命令回执
+ 138   6                              goto STOPWATER;
+ 139   6                          }
+ 140   5                          if (ValveCountDown <= 0)
+ 141   5                          {
+ 142   6                              Valve_Switch(OFF);
+ 143   6                              ValveFlag = ON;
+ 144   6                              ValveCountDown = 0;
+ 145   6                              //GPRS_SendData(COMMAND_RECV_STOPWATER, MODE_PUBLIC, STATUS_OPENDEVICE); //向服�
+             -��器上传取水命令回执
+ 146   6                              //if (DeviceFlow_01 != 0x00 && DeviceFlow_02 != 0x00)
+ 147   6                              //GPRS_SendData(COMMAND_USEWATERUPLOAD, MODE_PUBLIC, STATUS_OPENDEVICE); //向服�
+             -��器上传取水命令回执
+ 148   6                              //goto STOPWATER;
+ 149   6                          }
+ 150   5                          if (StopBool == True)
+ 151   5                          {
+ 152   6                              StopBool = False;
+ 153   6                              //Valve_Switch(OFF);
+ 154   6                              //GPRS_SendData(COMMAND_RECV_STOPWATER, MODE_PUBLIC, STATUS_OPENDEVICE); //向服�
+             -��器上传取水命令回执
+ 155   6                              if (ValveCount != 0)
+ 156   6                                  GPRS_SendData(COMMAND_USEWATERUPLOAD, MODE_PUBLIC, STATUS_OPENDEVICE); //向�
+             -�务器上传取水命令回执
+ 157   6                              ValveCount = 0;
+ 158   6                              if (ValveFlag == ON)
+ 159   6                              {
+ 160   7                                  ValveFlag = OFF;
+ 161   7                                  goto STOPWATER;
+ 162   7                              }
+C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/18/2018 16:38:22 PAGE 4   
+
+ 163   6                              T4T3M |= 0x08;
+ 164   6                              //ValveCountDown = 0;
+ 165   6                          }
+ 166   5                          //goto STOPWATER;
+ 167   5                      }
+ 168   4      
+ 169   4                  STOPWATER:
+ 170   4                      AUXR &= ~0x10; //用户开始用水定时器关闭
+ 171   4                      T4T3M |= 0x08;
+ 172   4                      //DeviceStatus = STATUS_OPENDEVICE;
+ 173   4      
+ 174   4                      ValveAll_H = Get_Long_H(ValveAll);
+ 175   4                      ValveAll_M1 = Get_Long_M1(ValveAll);
+ 176   4                      ValveAll_M2 = Get_Long_M2(ValveAll);
+ 177   4                      ValveAll_L = Get_Long_L(ValveAll);
+ 178   4      
+ 179   4                      IapErase(EEPROM_VavleALL);
+ 180   4                      IapProgram(EEPROM_Vavle, ValveAll_H);
+ 181   4                      IapProgram(EEPROM_Vavle + 1, ValveAll_M1);
+ 182   4                      IapProgram(EEPROM_Vavle + 2, ValveAll_M2);
+ 183   4                      IapProgram(EEPROM_Vavle + 3, ValveAll_L);
+ 184   4                      //GPRS_SendData(COMMAND_RECV_STOPWATER, MODE_PUBLIC, STATUS_OPENDEVICE); //向服务器上
+             -传取水命令回执
+ 185   4                      //GPRS_SendData(COMMAND_USEWATERUPLOAD, MODE_PUBLIC, STATUS_OPENDEVICE); //向服务器上
+             -传取水命令回执
+ 186   4                      ValveCount = 0;
+ 187   4                      ValveCountDown = 0;
+ 188   4                      DeviceFlow_01 = 0x00;
+ 189   4                      DeviceFlow_02 = 0x00;
+ 190   4      
+ 191   4                      Order = COMMAND_HEARTBEATPACKET;
+ 192   4                  }
+ 193   3                  else if (Order == COMMAND_STOPWATER)
+ 194   3                  {
+ 195   4                      GPRS_SendData(COMMAND_RECV_STOPWATER, MODE_PUBLIC, STATUS_OPENDEVICE); //向服务器上�
+             -�取水命令回执
+ 196   4                      //GPRS_SendData(COMMAND_USEWATERUPLOAD, MODE_PUBLIC, STATUS_OPENDEVICE); //向服务器上
+             -传取水命令回执
+ 197   4                      Order = COMMAND_HEARTBEATPACKET;
+ 198   4                  }
+ 199   3              }
+ 200   2      
+ 201   2              if ((RECV_Return("CLOSED", NULL) == True) || (RECV_Return_Special("CLOSED", NULL) == True))
+ 202   2              {
+ 203   3                  GPRS_ConnectClose();
+ 204   3                  GPRS_ConnectCreat(IP, Port);
+ 205   3                  IapRead(EEPROM_DeviceMode);
+ 206   3                  IapRead(EEPROM_DeviceStatus);
+ 207   3                  GPRS_SendData(COMMAND_HEARTBEATPACKET, DeviceMode, DeviceStatus);
+ 208   3                  Send_OK_Flag = True;
+ 209   3                  Order = COMMAND_MODESWITCH;
+ 210   3                  Clear_Buf(Rx_Buffer_AT);
+ 211   3                  Clear_Buf(Rx_Buffer);
+ 212   3                  return;
+ 213   3              }
+ 214   2              if ((RECV_Return("PDP:", NULL) == True) || (RECV_Return_Special("PDP:", NULL) == True))
+ 215   2              {
+ 216   3                  GPRS_ConnectClose();
+ 217   3                  GPRS_ConnectCreat(IP, Port);
+ 218   3                  IapRead(EEPROM_DeviceMode);
+ 219   3                  IapRead(EEPROM_DeviceStatus);
+ 220   3                  GPRS_SendData(COMMAND_HEARTBEATPACKET, DeviceMode, DeviceStatus);
+C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/18/2018 16:38:22 PAGE 5   
+
+ 221   3                  Send_OK_Flag = True;
+ 222   3                  Order = COMMAND_MODESWITCH;
+ 223   3                  Clear_Buf(Rx_Buffer_AT);
+ 224   3                  Clear_Buf(Rx_Buffer);
+ 225   3                  return;
+ 226   3              }
+ 227   2          }
+ 228   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    959    ----
+   CONSTANT SIZE    =     36    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

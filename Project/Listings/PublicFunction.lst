@@ -1,0 +1,278 @@
+C51 COMPILER V9.59.0.0   PUBLICFUNCTION                                                    09/18/2018 16:38:22 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE PUBLICFUNCTION
+OBJECT MODULE PLACED IN .\Objects\PublicFunction.obj
+COMPILER INVOKED BY: F:\Keil_v5_C51\C51\BIN\C51.EXE ..\Mode\src\PublicFunction.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Prot
+                    -ocol;..\Mode\inc;..\MyLib\inc;..\Lib\inc;..\User) DEBUG OBJECTEXTEND PRINT(.\Listings\PublicFunction.lst) TABS(2) OBJECT
+                    -(.\Objects\PublicFunction.obj)
+
+line level    source
+
+   1          #include "STC8A8K32S4A12.h"
+   2          
+   3          #include "PublicFunction.h"
+   4          #include "PublicMode.h"
+   5          #include "PrivateMode.h"
+   6          #include "Packet.h"
+   7          #include "Order.h"
+   8          #include "Usart.h"
+   9          #include "Gprs.h"
+  10          #include "IODeal.h"
+  11          #include "Delay.h"
+  12          #include "EEPROM.h"
+  13          
+  14          #include "string.h"
+  15          #include "stdlib.h"
+  16          #include "ctype.h"
+  17          
+  18          void Valve_Switch(int Switch)
+  19          {
+  20   1          if (Switch == ON)
+  21   1          {
+  22   2              Valve_Open();
+  23   2          }
+  24   1          if (Switch == OFF)
+  25   1          {
+  26   2              Valve_Close();
+  27   2          }
+  28   1      }
+  29          
+  30          int Get_Hvalue(int Check)
+  31          {
+  32   1          int xdata Hvalue = 0;
+  33   1          Hvalue = (short)(Check >> 8);
+  34   1          return Hvalue;
+  35   1      }
+  36          
+  37          int Get_Lvalue(int Check)
+  38          {
+  39   1          int xdata Lvalue = 0;
+  40   1          Lvalue = (short)(Check & 0xff);
+  41   1          return Lvalue;
+  42   1      }
+  43          
+  44          int Get_Long_H(unsigned long Check)
+  45          {
+  46   1          int xdata Hvalue = 0;
+  47   1          Hvalue = (short)(Check >> 24);
+  48   1          return Hvalue;
+  49   1      }
+  50          
+  51          int Get_Long_M1(unsigned long Check)
+  52          {
+  53   1          int xdata Lvalue = 0;
+C51 COMPILER V9.59.0.0   PUBLICFUNCTION                                                    09/18/2018 16:38:22 PAGE 2   
+
+  54   1          Lvalue = (short)(Check >> 16);
+  55   1          return Lvalue;
+  56   1      }
+  57          int Get_Long_M2(unsigned long Check)
+  58          {
+  59   1          int xdata Hvalue = 0;
+  60   1          Hvalue = (short)(Check >> 8);
+  61   1          return Hvalue;
+  62   1      }
+  63          
+  64          int Get_Long_L(unsigned long Check)
+  65          {
+  66   1          int xdata Lvalue = 0;
+  67   1          Lvalue = (short)(Check & 0xff);
+  68   1          return Lvalue;
+  69   1      }
+  70          
+  71          unsigned int Get_HLvalue(unsigned char Hvalue, unsigned char Lvalue)
+  72          {
+  73   1          unsigned int xdata HLvalue = 0;
+  74   1          HLvalue = (Hvalue << 8) + Lvalue;
+  75   1          return HLvalue;
+  76   1      }
+  77          
+  78          unsigned long Get_HMLvalue(int Hvalue, int M1value, int M2value, int Lvalue)
+  79          {
+  80   1          unsigned long xdata HMLvalue = 0;
+  81   1          HMLvalue = (unsigned long)(Hvalue << 24) + (M1value << 16) + (M2value << 8) + Lvalue;
+  82   1          return HMLvalue;
+  83   1      }
+  84          
+  85          void Get_Check(int *HCheck, int *LCheck)
+  86          {
+  87   1          int xdata Check;
+  88   1          Check = DeviceID_01 + DeviceID_02 + DeviceID_03 + DeviceID_04 + DeviceMode + Order + DeviceStatus + De
+             -viceFlow_01 + DeviceFlow_02 + RechargeFlow_01 + RechargeFlow_02 + RechargeDay_01 + RechargeDay_02 + SurplusFlow_01 + Sur
+             -plusFlow_02 + SurplusDay_01 + SurplusDay_02 + UsedFlow_01 + UsedFlow_02 + UsedDay_01 + UsedDay_02 + WaterTDS_01 + WaterT
+             -DS_02 + GPRSSignal + ICCID1_01 + ICCID1_02 + ICCID2_01 + ICCID2_02 + ICCID3_01 + ICCID3_02 + ICCID4_01 + ICCID4_02 + ICC
+             -ID5_01 + ICCID5_02;
+  89   1          *HCheck = Get_Hvalue(Check);
+  90   1          *LCheck = Get_Lvalue(Check);
+  91   1      }
+  92          
+  93          int Char_to_Int(char ch)
+  94          {
+  95   1          if (isdigit(ch))
+  96   1              return ch - 48;
+  97   1          if (ch < 'A' || (ch > 'F' && ch < 'a') || ch > 'z')
+  98   1              return -1;
+  99   1          if (isalpha(ch))
+ 100   1              return isupper(ch) ? ch - 55 : ch - 87;
+ 101   1      
+ 102   1          return -1;
+ 103   1      }
+ 104          
+ 105          int Hex_to_Int(char *hex)
+ 106          {
+ 107   1          int xdata len;
+ 108   1          int xdata num = 0;
+ 109   1          int xdata temp;
+ 110   1          int xdata bits;
+ 111   1          int xdata i;
+C51 COMPILER V9.59.0.0   PUBLICFUNCTION                                                    09/18/2018 16:38:22 PAGE 3   
+
+ 112   1          len = strlen(hex);
+ 113   1      
+ 114   1          for (i = 0, temp = 0; i < len; i++, temp = 0)
+ 115   1          {
+ 116   2              temp = Char_to_Int(*(hex + i));
+ 117   2              bits = (len - i - 1) * 4;
+ 118   2              temp = temp << bits;
+ 119   2              num = num | temp;
+ 120   2          }
+ 121   1          return num;
+ 122   1      }
+ 123          
+ 124          unsigned long Flow_to_Valve_FlowMode(void)
+ 125          {
+ 126   1          unsigned int xdata HL = 0;
+ 127   1          unsigned long xdata HLC = 0;
+ 128   1          int i;
+ 129   1          HL = Get_HLvalue(RechargeFlow_01, RechargeFlow_02);
+ 130   1          for (i = 0; i < HL; i++)
+ 131   1          {
+ 132   2              HLC = HLC + Valve1L;
+ 133   2          }
+ 134   1          return HLC;
+ 135   1      }
+ 136          
+ 137          unsigned long Flow_to_Valve_PublicMode(void)
+ 138          {
+ 139   1          unsigned int xdata HL = 0;
+ 140   1          unsigned long xdata HLC = 0;
+ 141   1          int i;
+ 142   1          HL = Get_HLvalue(RechargeFlow_01, RechargeFlow_02);
+ 143   1          for (i = 0; i < HL; i++)
+ 144   1          {
+ 145   2              HLC = HLC + Valve001L;
+ 146   2          }
+ 147   1          return HLC;
+ 148   1      }
+ 149          
+ 150          void Valve_to_Flow(void)
+ 151          {
+ 152   1          unsigned int xdata UseFlow;
+ 153   1          unsigned int xdata SurplusFlow;
+ 154   1          unsigned int xdata UsedFlow;
+ 155   1          UseFlow = ValveCount / Valve001L;
+ 156   1          if (DeviceMode == MODE_PUBLIC)
+ 157   1              SurplusFlow = ValveCountDown / Valve001L;
+ 158   1          else if (DeviceMode == MODE_FLOW)
+ 159   1              SurplusFlow = ValveCountDown / Valve1L;
+ 160   1          UsedFlow = ValveAll / Valve1L;
+ 161   1          DeviceFlow_01 = (unsigned short)Get_Hvalue(UseFlow);
+ 162   1          DeviceFlow_02 = (unsigned short)Get_Lvalue(UseFlow);
+ 163   1          SurplusFlow_01 = (unsigned short)Get_Hvalue(SurplusFlow);
+ 164   1          SurplusFlow_02 = (unsigned short)Get_Lvalue(SurplusFlow);
+ 165   1          UsedFlow_01 = (unsigned short)Get_Hvalue(UsedFlow);
+ 166   1          UsedFlow_02 = (unsigned short)Get_Lvalue(UsedFlow);
+ 167   1      }
+ 168          
+ 169          void Recovery_PacketData(void)
+ 170          {
+ 171   1          IapErase(EEPROM_DeviceID);
+ 172   1          IapProgram(EEPROM_DeviceID, 0x00);
+ 173   1          IapProgram(EEPROM_DeviceID + 1, 0x00);
+C51 COMPILER V9.59.0.0   PUBLICFUNCTION                                                    09/18/2018 16:38:22 PAGE 4   
+
+ 174   1          IapProgram(EEPROM_DeviceID + 2, 0x00);
+ 175   1          IapProgram(EEPROM_DeviceID + 3, 0x00);
+ 176   1      
+ 177   1          IapErase(EEPROM_DeviceMode);
+ 178   1          IapProgram(EEPROM_DeviceMode, MODE_PUBLIC);
+ 179   1          DeviceMode = MODE_PUBLIC;
+ 180   1      
+ 181   1          Order = COMMAND_HEARTBEATPACKET; //命令
+ 182   1      
+ 183   1          IapErase(EEPROM_DeviceStatus);
+ 184   1          IapProgram(EEPROM_DeviceStatus, STATUS_RECOVERY);
+ 185   1          DeviceStatus = STATUS_RECOVERY;
+ 186   1      
+ 187   1          DeviceFlow_01 = 0x00;   //本次消费流量_01         [08]
+ 188   1          DeviceFlow_02 = 0x00;   //本次消费流量_02         [09]
+ 189   1          RechargeFlow_01 = 0x00; //充值流量_01         [10]
+ 190   1          RechargeFlow_02 = 0x00; //充值流量_02         [11]
+ 191   1          RechargeDay_01 = 0x00;  //充值天数_01         [12]
+ 192   1          RechargeDay_02 = 0x00;  //充值天数_02         [13]
+ 193   1      
+ 194   1          SurplusFlow_01 = 0x00; //剩余流量_01          [14]
+ 195   1          SurplusFlow_02 = 0x00; //剩余流量_02          [15]
+ 196   1      
+ 197   1          SurplusDay_01 = 0x00; //剩余天数_01         [16]
+ 198   1          SurplusDay_02 = 0x00; //剩余天数_02         [17]
+ 199   1      
+ 200   1          UsedFlow_01 = 0x00; //已使用流量_01        [18]
+ 201   1          UsedFlow_02 = 0x00; //已使用流量_02        [19]
+ 202   1      
+ 203   1          UsedDay_01 = 0x00; //已使用天数_01       [20]
+ 204   1          UsedDay_02 = 0x00; //已使用天数_02       [21]
+ 205   1      
+ 206   1          WaterTDS_01 = 0x00; //纯水TDS值_01     [22]
+ 207   1          WaterTDS_02 = 0x00; //纯水TDS值_02     [23]
+ 208   1      
+ 209   1          IapErase(EEPROM_Vavle);
+ 210   1          IapProgram(EEPROM_Vavle, 0x00);
+ 211   1          IapProgram(EEPROM_Vavle + 1, 0x00);
+ 212   1          IapProgram(EEPROM_Vavle + 2, 0x00);
+ 213   1          IapProgram(EEPROM_Vavle + 3, 0x00);
+ 214   1      
+ 215   1          IapErase(EEPROM_VavleALL);
+ 216   1          IapProgram(EEPROM_VavleALL, 0x00);
+ 217   1          IapProgram(EEPROM_VavleALL + 1, 0x00);
+ 218   1          IapProgram(EEPROM_VavleALL + 2, 0x00);
+ 219   1          IapProgram(EEPROM_VavleALL + 3, 0x00);
+ 220   1      }
+ 221          
+ 222          void SystemInit_PacketData(void)
+ 223          {
+ 224   1          Order = COMMAND_HEARTBEATPACKET; //命令
+ 225   1          IapErase(EEPROM_DeviceMode);
+ 226   1          IapProgram(EEPROM_DeviceMode, DeviceMode);
+ 227   1          IapErase(EEPROM_DeviceStatus);
+ 228   1          IapProgram(EEPROM_DeviceStatus, DeviceStatus);
+ 229   1      
+ 230   1          ValveCountDown = Get_HLvalue(SurplusFlow_01, SurplusFlow_02) * Valve1L;
+ 231   1          ValveCountDown_H = Get_Long_H(ValveCountDown);
+ 232   1          ValveCountDown_M1 = Get_Long_M1(ValveCountDown);
+ 233   1          ValveCountDown_M2 = Get_Long_M2(ValveCountDown);
+ 234   1          ValveCountDown_L = Get_Long_L(ValveCountDown);
+ 235   1      
+C51 COMPILER V9.59.0.0   PUBLICFUNCTION                                                    09/18/2018 16:38:22 PAGE 5   
+
+ 236   1          IapErase(EEPROM_Vavle);
+ 237   1          IapProgram(EEPROM_Vavle, ValveCountDown_H);
+ 238   1          IapProgram(EEPROM_Vavle + 1, ValveCountDown_M1);
+ 239   1          IapProgram(EEPROM_Vavle + 2, ValveCountDown_M2);
+ 240   1          IapProgram(EEPROM_Vavle + 3, ValveCountDown_L);
+ 241   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1842    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      48
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      28
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

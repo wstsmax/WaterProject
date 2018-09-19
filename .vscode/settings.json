@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "ctype.h": "c",
+        "publicfunction.h": "c",
+        "packet.h": "c",
+        "stdlib.h": "c",
+        "string.h": "c",
+        "order.h": "c",
+        "stc8a8k32s4a12.h": "c",
+        "delay.h": "c",
+        "iodeal.h": "c",
+        "usart.h": "c",
+        "gprs.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
+}

@@ -1,0 +1,108 @@
+C51 COMPILER V9.59.0.0   PACKET                                                            09/18/2018 16:38:24 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE PACKET
+OBJECT MODULE PLACED IN .\Objects\Packet.obj
+COMPILER INVOKED BY: F:\Keil_v5_C51\C51\BIN\C51.EXE ..\Protocol\Packet.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Protocol;..\
+                    -Mode\inc;..\MyLib\inc;..\Lib\inc;..\User) DEBUG OBJECTEXTEND PRINT(.\Listings\Packet.lst) TABS(2) OBJECT(.\Objects\Packe
+                    -t.obj)
+
+line level    source
+
+   1          #include "Packet.h"
+   2          #include "Order.h"
+   3          /*
+   4            数据包
+   5          */
+   6          unsigned char xdata DeviceID_01 = 0x00;        //设备ID_01        [01]
+   7          unsigned char xdata DeviceID_02 = 0x00;        //设备ID_02        [02]
+   8          unsigned char xdata DeviceID_03 = 0x00;        //设备ID_03        [03]
+   9          unsigned char xdata DeviceID_04 = 0x00;        //设备ID_04        [04]
+  10          unsigned char xdata DeviceMode = MODE_PUBLIC;    //设备计费模式          [05]
+  11          unsigned char xdata Order = COMMAND_HEARTBEATPACKET; //命令           [06]
+  12          unsigned char xdata DeviceStatus = STATUS_RECOVERY;  //设备状态         [07]
+  13          unsigned char xdata DeviceFlow_01 = 0x00;      //本次消费流量_01          [08]
+  14          unsigned char xdata DeviceFlow_02 = 0x00;      //本次消费流量_02          [09]
+  15          unsigned char xdata RechargeFlow_01 = 0x00;      //充值流量_01          [10]
+  16          unsigned char xdata RechargeFlow_02 = 0x00;      //充值流量_02          [11]
+  17          unsigned char xdata RechargeDay_01 = 0x00;       //充值天数_01          [12]
+  18          unsigned char xdata RechargeDay_02 = 0x00;       //充值天数_02          [13]
+  19          unsigned char xdata SurplusFlow_01 = 0x00;       //剩余流量_01          [14]
+  20          unsigned char xdata SurplusFlow_02 = 0x00;       //剩余流量_02          [15]
+  21          unsigned char xdata SurplusDay_01 = 0x00;      //剩余天数_01          [16]
+  22          unsigned char xdata SurplusDay_02 = 0x00;      //剩余天数_02          [17]
+  23          unsigned char xdata UsedFlow_01 = 0x00;        //已使用流量_01       [18]
+  24          unsigned char xdata UsedFlow_02 = 0x00;        //已使用流量_02       [19]
+  25          unsigned char xdata UsedDay_01 = 0x00;         //已使用天数_01       [20]
+  26          unsigned char xdata UsedDay_02 = 0x00;         //已使用天数_02       [21]
+  27          unsigned char xdata WaterTDS_01 = 0x00;        //纯水TDS值_01      [22]
+  28          unsigned char xdata WaterTDS_02 = 0x00;        //纯水TDS值_02      [23]
+  29          unsigned char xdata GPRSSignal = 0x00;         //GPRS信号强度         [24]
+  30          unsigned char xdata ICCID1_01 = 0x00;        //ICCID1_01        [25]
+  31          unsigned char xdata ICCID1_02 = 0x00;        //ICCID1_02        [26]
+  32          unsigned char xdata ICCID2_01 = 0x00;        //ICCID2_01        [27]
+  33          unsigned char xdata ICCID2_02 = 0x00;        //ICCID2_01        [28]
+  34          unsigned char xdata ICCID3_01 = 0x00;        //ICCID3_01        [29]
+  35          unsigned char xdata ICCID3_02 = 0x00;        //ICCID3_02        [30]
+  36          unsigned char xdata ICCID4_01 = 0x00;        //ICCID4_01        [31]
+  37          unsigned char xdata ICCID4_02 = 0x00;        //ICCID4_02        [32]
+  38          unsigned char xdata ICCID5_01 = 0x00;        //ICCID5_01        [33]
+  39          unsigned char xdata ICCID5_02 = 0x00;        //ICCID5_02        [34]
+  40          unsigned char xdata Check_01 = 0x00;         //校验位_01       [35]
+  41          unsigned char xdata Check_02 = 0x00;         //校验位_02       [36]
+  42          
+  43          int data StartBool = False;     //用户开始用水标志位
+  44          int data StopBool = False;      //用户结束用水标志位（流量模式）
+  45          int data HeartPacketBool = False; //心跳包标志位
+  46          int data ICCIDBool = False;     //获取ICCID标志位
+  47          
+  48          int xdata Buf_Length = 0;            //接收缓冲区大小
+  49          char xdata Rx_Buffer[MAX_SIZE] = {0x00};     //接收缓冲区
+  50          char xdata Rx_Buffer_AT[MAX_SIZE_AT] = {0x00}; //接收缓冲区
+  51          //char xdata Rx_Buffer_AT[MAX_SIZE] = {0x00}; //接收缓冲区
+  52          
+  53          unsigned long data ValveCountDown = 0;  //剩余脉冲计量值（递减）
+C51 COMPILER V9.59.0.0   PACKET                                                            09/18/2018 16:38:24 PAGE 2   
+
+  54          unsigned char ValveCountDown_H = 0x00;  //剩余脉冲计量值（递减）高八位
+  55          unsigned char ValveCountDown_M1 = 0x00; //剩余脉冲计量值（递减）中高八位
+  56          unsigned char ValveCountDown_M2 = 0x00; //剩余脉冲计量值（递减）中低八位
+  57          unsigned char ValveCountDown_L = 0x00;  //剩余脉冲计量值（递减）低八位
+  58          unsigned long data ValveCount = 0;    //本次使用脉冲计量值（递增）
+  59          unsigned long data ValveAll = 0;    //总脉冲计量值
+  60          unsigned char ValveAll_H = 0x00;    //总使用脉冲计量值（递减）高八位
+  61          unsigned char ValveAll_M1 = 0x00;   //总使用脉冲计量值（递减）中高八位
+  62          unsigned char ValveAll_M2 = 0x00;   //总使用脉冲计量值（递减）中低八位
+  63          unsigned char ValveAll_L = 0x00;    //总使用脉冲计量值（递减）低八位
+  64          
+  65          unsigned int code Valve1L = 1380; //1L水脉冲数
+  66          unsigned int code Valve001L = 14; //0.01L水脉冲数
+  67          
+  68          int data Lock = ON; //锁定模式标志位
+  69          
+  70          long data PollTimer = 0;       //心跳包定时器轮询数
+  71          int data PollTimer_Start = 0;   //开始用水定时器轮询数
+  72          int data PollTimer_Stop = 0;     //结束用水定时器轮询数 Ⅰ
+  73          int data PollTimer_Start_Stop = 0; //结束用水定时器轮询数 Ⅱ
+  74          int data TempTimer_Start = 0;   //用户开始用水时脉冲计量数
+  75          int data TempTimer_Stop = 0;     //用户结束用水时脉冲计量数
+  76          
+  77          int data BUSY; //忙绿
+  78          
+  79          int data OpenDeviceCount = 0; //用户开机次数
+  80          
+  81          int data Send_OK_Flag = False; //数据包发送标志位
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =      4    ----
+   XDATA SIZE       =    124    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     50    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

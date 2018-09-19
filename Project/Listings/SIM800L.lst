@@ -1,0 +1,173 @@
+C51 COMPILER V9.59.0.0   SIM800L                                                           08/13/2018 14:25:24 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE SIM800L
+OBJECT MODULE PLACED IN .\Objects\SIM800L.obj
+COMPILER INVOKED BY: F:\Keil_v5_C51\C51\BIN\C51.EXE ..\MyLib\src\SIM800L.c LARGE ROM(COMPACT) OPTIMIZE(8,SPEED) BROWSE I
+                    -NCDIR(..\Protocol;..\Mode\inc;..\MyLib\inc;..\Lib\inc;..\User) DEBUG OBJECTEXTEND PRINT(.\Listings\SIM800L.lst) TABS(2) 
+                    -OBJECT(.\Objects\SIM800L.obj)
+
+line level    source
+
+   1          #include "Sim800L.h"
+   2          #include "Usart.h"
+   3          #include "Order.h"
+   4          
+   5          /*bool RECV_Return(void * Recv1, void * Recv2)
+   6          {
+   7              if (((char*)Recv1 == 0)&&((char*)Recv2 == 0))
+   8              return true;             
+   9               
+  10             while(Buf_Length)
+  11             {
+  12                delay_ms(10);     
+  13                Buf_Length = 0;
+  14                break;
+  15              } 
+  16                
+  17            if ((Recv1 != 0) && (Recv2 != 0 )){
+  18              return (  strstr ( (char*)Rx_Buffer, (char*)Recv1 ) &&
+  19                        strstr ( (char*)Rx_Buffer, (char*)Recv2 ) );
+  20            }
+  21            else if ( Recv1 != 0 ){
+  22              return (  strstr ( (char*)Rx_Buffer,(char*)Recv1 ) );
+  23            }
+  24            else{
+  25              return  (strstr ( (char*)Rx_Buffer, (char*)Recv2 )) ;
+  26            }
+  27          }*/
+  28          
+  29          void SIM800_Init()
+  30          {
+  31   1        Usart_Init();
+  32   1      }
+  33          void SIM800_GPRSMode(void)
+  34          { 
+  35   1        Usart_Send_Data("AT\n");
+  36   1        delay_ms(500);
+*** WARNING C206 IN LINE 36 OF ..\MyLib\src\SIM800L.c: 'delay_ms': missing function-prototype
+*** ERROR C267 IN LINE 36 OF ..\MyLib\src\SIM800L.c: 'delay_ms': requires ANSI-style prototype
+  37   1        while(ERROR_Return(RECV_Return("OK",NULL),ERROR_AT)==false)
+  38   1        { 
+  39   2          Clear_Recv_Flag(Rx_Buffer);
+  40   2          Usart_Send_Data("AT\n");
+  41   2          delay_ms(500);
+  42   2        }
+  43   1        Clear_Recv_Flag(Rx_Buffer);
+  44   1        Usart_Send_Data("AT+CPIN?\r\n");
+  45   1        delay_ms(500);
+  46   1        while(ERROR_Return(RECV_Return("+CPIN: READY","OK"),ERROR_CPIN)==false)
+  47   1        { 
+  48   2          Clear_Recv_Flag(Rx_Buffer);
+  49   2          Usart_Send_Data("AT+CPIN?\r\n");
+  50   2          delay_ms(500);
+  51   2        }
+C51 COMPILER V9.59.0.0   SIM800L                                                           08/13/2018 14:25:24 PAGE 2   
+
+  52   1        Clear_Recv_Flag(Rx_Buffer);
+  53   1        Usart_Send_Data("AT+CREG=1\r\n");
+  54   1        delay_ms(500);
+  55   1        while(ERROR_Return(RECV_Return("OK",NULL),ERROR_CREG)==false)
+  56   1        { 
+  57   2          Clear_Recv_Flag(Rx_Buffer);
+  58   2          Usart_Send_Data("AT+CREG=1\r\n");
+  59   2          delay_ms(500);
+  60   2        }
+  61   1        Clear_Recv_Flag(Rx_Buffer);
+  62   1        Usart_Send_Data("AT+CGREG=1\r\n");
+  63   1        delay_ms(500);
+  64   1        while(ERROR_Return(RECV_Return("OK",NULL),ERROR_CGREG)==false)
+  65   1        { 
+  66   2          Clear_Recv_Flag(Rx_Buffer);
+  67   2          Usart_Send_Data("AT+CGREG=1\r\n");
+  68   2          delay_ms(500);
+  69   2        }
+  70   1        Clear_Recv_Flag(Rx_Buffer);
+  71   1        Usart_Send_Data("AT+CGATT=1\r\n");
+  72   1        delay_ms(500);
+  73   1        while(ERROR_Return(RECV_Return("OK",NULL),ERROR_CGATT)==false)
+  74   1        { 
+  75   2          Clear_Recv_Flag(Rx_Buffer);
+  76   2          Usart_Send_Data("AT+CGATT=1\r\n");
+  77   2          delay_ms(500);
+  78   2        }
+  79   1        Clear_Recv_Flag(Rx_Buffer);
+  80   1        Usart_Send_Data("AT+CIPMODE=1\r\n");
+  81   1        delay_ms(500);
+  82   1        while(ERROR_Return(RECV_Return("OK",NULL),ERROR_CIPMODE)==false)
+  83   1        { 
+  84   2          Clear_Recv_Flag(Rx_Buffer);
+  85   2          Usart_Send_Data("AT+CIPMODE=1\r\n");
+  86   2          delay_ms(500);
+  87   2        }
+  88   1        Clear_Recv_Flag(Rx_Buffer);
+  89   1        Usart_Send_Data("AT+CSTT=\"CMNET\"\r\n");
+  90   1        delay_ms(1000);
+  91   1        while(ERROR_Return(RECV_Return("OK",NULL),ERROR_CSTT)==false)
+  92   1        { 
+  93   2          Clear_Recv_Flag(Rx_Buffer);
+  94   2          Usart_Send_Data("AT+CSTT=\"CMNET\"\r\n");
+  95   2          delay_ms(500);
+  96   2        }
+  97   1        Clear_Recv_Flag(Rx_Buffer);
+  98   1        Usart_Send_Data("AT+CIICR\r\n");
+  99   1        delay_ms(3000);
+ 100   1        while(ERROR_Return(RECV_Return("OK",NULL),ERROR_CIICR)==false)
+ 101   1        { 
+ 102   2          Clear_Recv_Flag(Rx_Buffer);
+ 103   2          Usart_Send_Data("AT+CIICR\r\n");
+ 104   2          delay_ms(3000);
+ 105   2        }
+ 106   1        Clear_Recv_Flag(Rx_Buffer);
+ 107   1        Usart_Send_Data("AT+CIFSR\r\n");
+ 108   1        delay_ms(500);
+ 109   1        while(ERROR_Return(RECV_Return("10.",NULL),ERROR_CIFSR)==false)
+ 110   1        { 
+ 111   2          Clear_Recv_Flag(Rx_Buffer);
+ 112   2          Usart_Send_Data("AT+CIICR\r\n");
+ 113   2          delay_ms(500);
+C51 COMPILER V9.59.0.0   SIM800L                                                           08/13/2018 14:25:24 PAGE 3   
+
+ 114   2        }
+ 115   1        Clear_Recv_Flag(Rx_Buffer);
+ 116   1      }
+ 117          
+ 118          void SIM800_CreatConnect(char *IP,char *Port)
+ 119          {
+ 120   1        char *TCPCmd="AT+CIPSTART=";
+ 121   1        Usart_Send_Data(TCPCmd);
+ 122   1        Usart_Send(34); // "
+ 123   1        Usart_Send_Data("TCP");
+ 124   1        Usart_Send(34); // "
+ 125   1        Usart_Send(44); //,
+ 126   1        Usart_Send(34); // "
+ 127   1        Usart_Send_Data(IP);
+ 128   1        Usart_Send(34); // "
+ 129   1        Usart_Send(44); //,
+ 130   1        Usart_Send(34); // "
+ 131   1        Usart_Send_Data(Port);
+ 132   1        Usart_Send(34); // "
+ 133   1        Usart_Send_Data("\r\n");
+ 134   1        delay_ms(8000);
+ 135   1      }
+ 136          
+ 137          void SIM800_GPRSSendData(void)
+ 138          {
+ 139   1      
+ 140   1      }
+ 141          
+ 142          void SIM800_GPRSClose(void)
+ 143          {
+ 144   1        Usart_Send_Data("AT+CIPSHUT\n");
+ 145   1        delay_ms(500);
+ 146   1        while(ERROR_Return(RECV_Return("OK",NULL),ERROR_AT)==false)
+ 147   1        { 
+ 148   2          Clear_Recv_Flag(Rx_Buffer);
+ 149   2          Usart_Send_Data("AT+CIPSHUT\n\n");
+ 150   2          delay_ms(500);
+ 151   2        }
+ 152   1        Clear_Recv_Flag(Rx_Buffer);
+ 153   1      }
+ 154          
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  1 ERROR(S)

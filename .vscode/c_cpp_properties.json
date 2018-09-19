@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "F:/Keil_v5_C51/C51/INC",
+                "${workspaceFolder}/Protocol"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}
