@@ -206,7 +206,7 @@ void PrivateMode_Start()
             {
                 if (ValveCountDown > 0)
                 {
-                    Valve_Switch(ON); //打开脉冲阀
+                    //Valve_Switch(ON); //打开脉冲阀
                     DeviceStatus = STATUS_OPENDEVICE;
                     IapErase(EEPROM_DeviceStatus);
                     IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);
@@ -231,7 +231,7 @@ void PrivateMode_Start()
             {
                 if (ValveCountDown > 0)
                 {
-                    Valve_Switch(ON); //打开脉冲阀
+                    //Valve_Switch(ON); //打开脉冲阀
                     DeviceStatus = STATUS_OPENDEVICE;
                     IapErase(EEPROM_DeviceStatus);
                     IapProgram(EEPROM_DeviceStatus, STATUS_OPENDEVICE);

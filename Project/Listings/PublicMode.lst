@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/26/2018 11:02:11 PAGE 1   
+C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/26/2018 15:39:20 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE PUBLICMODE
@@ -62,7 +62,7 @@ line level    source
   50   4                  }
   51   3              }
   52   2              else
-C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/26/2018 11:02:11 PAGE 2   
+C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/26/2018 15:39:20 PAGE 2   
 
   53   2              {
   54   3                  if (Order == COMMAND_ERRORUPLOAD)
@@ -126,7 +126,7 @@ line level    source
  107   5                          DeviceStatus = STATUS_LOCKDEVICE; //接收机器锁定命令，关闭脉冲阀
  108   5                          IapErase(EEPROM_DeviceStatus);
  109   5                          IapProgram(EEPROM_DeviceStatus, STATUS_LOCKDEVICE);
-C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/26/2018 11:02:11 PAGE 3   
+C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/26/2018 15:39:20 PAGE 3   
 
  110   5                          Lock = OFF;
  111   5                      }
@@ -190,7 +190,7 @@ line level    source
  163   5                          if (StopBool == True)
  164   5                          {
  165   6                              StopBool = False;
-C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/26/2018 11:02:11 PAGE 4   
+C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/26/2018 15:39:20 PAGE 4   
 
  166   6                              //Valve_Switch(OFF);
  167   6                              //GPRS_SendData(COMMAND_RECV_STOPWATER, MODE_PUBLIC, STATUS_OPENDEVICE); //向服�
@@ -254,7 +254,7 @@ line level    source
  219   3                  GPRS_ConnectCreat(IP, Port);
  220   3                  IapRead(EEPROM_DeviceMode);
  221   3                  IapRead(EEPROM_DeviceStatus);
-C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/26/2018 11:02:11 PAGE 5   
+C51 COMPILER V9.59.0.0   PUBLICMODE                                                        09/26/2018 15:39:20 PAGE 5   
 
  222   3                  GPRS_SendData(COMMAND_HEARTBEATPACKET, DeviceMode, DeviceStatus);
  223   3                  Send_OK_Flag = True;

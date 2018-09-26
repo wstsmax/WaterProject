@@ -50,6 +50,10 @@ void TIM0_Isr() interrupt 1 using 1
     ValveCount++;
     ValveCountDown--;
     ValveAll++;
+        if(ValveCountDown == 0)
+    {
+        ValveCountDown = 0;
+    }
 }
 
 void TIM2_Isr() interrupt 12 using 1
