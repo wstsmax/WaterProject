@@ -55,10 +55,10 @@ void PrivateMode_Start()
         {
             if (Order == COMMAND_ERRORUPLOAD)
             {
-                    DeviceMode = IapRead(EEPROM_DeviceMode);
-                    DeviceStatus = IapRead(EEPROM_DeviceStatus);
-                    GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus);
-                    Order = COMMAND_HEARTBEATPACKET;
+                DeviceMode = IapRead(EEPROM_DeviceMode);
+                DeviceStatus = IapRead(EEPROM_DeviceStatus);
+                GPRS_SendData(COMMAND_ERRORUPLOAD, DeviceMode, DeviceStatus);
+                Order = COMMAND_HEARTBEATPACKET;
             }
             else if (Order == COMMAND_DEVICECLOSE) //关机命令
             {
@@ -239,6 +239,7 @@ void PrivateMode_Start()
                 else if (ValveCountDown == 0)
                 {
                     Valve_Switch(OFF); //关闭脉冲阀
+                    ValveCountDown = 0;
                     DeviceStatus = STATUS_OPENDEVICE;
                     IapErase(EEPROM_DeviceStatus);
                     IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
@@ -246,6 +247,7 @@ void PrivateMode_Start()
                 else if (ValveCountDown < 0)
                 {
                     Valve_Switch(OFF); //关闭脉冲阀
+                    ValveCountDown = 0;
                     DeviceStatus = STATUS_ARREARAGE;
                     IapErase(EEPROM_DeviceStatus);
                     IapProgram(EEPROM_DeviceStatus, STATUS_ARREARAGE);
@@ -272,7 +274,9 @@ void PrivateMode_Start()
                 IapProgram(EEPROM_Vavle + 2, ValveAll_M2);
                 IapProgram(EEPROM_Vavle + 3, ValveAll_L);
 
-                GPRS_SendData(COMMAND_USEWATERUPLOAD, DeviceMode, DeviceStatus); //向服务器上传用水同步命令
+                if (ValveCount != 0)
+                    GPRS_SendData(COMMAND_USEWATERUPLOAD, DeviceMode, DeviceStatus); //向服务器上传用水同步命令
+                ValveCount = 0;
                 StopBool = False;
             }
         }
